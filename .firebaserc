@@ -1,6 +1,6 @@
 {
   "projects": {
-    "dtwm-website": "joindtwm",
+    "dtwm-website": "dtwm-website",
     "default": "dtwm-website"
   }
 }
