@@ -16,7 +16,8 @@ Commits to `master` will be built and deployed automatically.
 
 ## Contributing
 Pull requests are totally welcome. There are 2 rules:
-- TypeScript should be used instead ot JavaScript. JS pull requestd will be rejected
+- Javascript pull requests will be rejected
+ Use Typescript
 - PRs that abuse `any` will be asked to properly type their code
 
 ## Stack info
