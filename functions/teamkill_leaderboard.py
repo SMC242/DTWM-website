@@ -17,14 +17,15 @@ API_KEY = read_file("PS2_API_KEY.txt")[0]
 DTWM_ID = 37566723466738093
 
 
-def pipe_async(*funcs: List[Union[Coroutine, Callable]]):
-    def call_func(func: Union[Coroutine, Callable]):
-        async def call_func_inner(args):
-            if is_coro(func):
-                return await func(*args)
-            return func(*args)
-        return call_func_inner
+def call_func(func: Union[Coroutine, Callable]):
+    async def call_func_inner(args):
+        if is_coro(func):
+            return await func(*args)
+        return func(*args)
+    return call_func_inner
 
+
+def pipe_async(*funcs: List[Union[Coroutine, Callable]]):
     async def pipe_async_inner(*args):
         result = await call_func(funcs[0])(args)
         for func in funcs[1:]:
@@ -45,6 +46,15 @@ def with_retry(func):
             result = await func(*args)
         return result
     return with_retry_inner
+
+
+def with_debug(func):
+    async def with_debug_inner(*args):
+        print(f"Arguments for function {func} were: {args}")
+        result = await call_func(func)(args)
+        print(f"Output: {result}")
+        return result
+    return with_debug_inner
 
 
 def get_dtwm(dtwm_id: int) -> Coroutine[None, None, ps2.Outfit]:
