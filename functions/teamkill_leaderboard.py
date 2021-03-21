@@ -1,9 +1,10 @@
 import asyncio
 import auraxium
-from typing import Coroutine, List, Union, Callable
+from typing import AsyncGenerator, Coroutine, List, Union, Callable, Any
 from auraxium import ps2
 from auraxium.errors import MissingServiceIDError
 from inspect import iscoroutinefunction as is_coro
+from math import floor
 
 # constants
 
@@ -71,12 +72,33 @@ async def get_members(outfit: ps2.Outfit):
     return await outfit.members().flatten()
 
 
+def chunk_members(chunk_size: int = 20):
+    def chunk_members_inner(members: List[ps2.OutfitMember]):
+        def chunked_members():
+            for offset in range(1, floor(len(members) / chunk_size)):
+                yield members[:offset * chunk_size]
+        return chunked_members()
+    return chunk_members_inner
+
+
 async def to_character(member: ps2.OutfitMember):
     return await member.character()
 
 
 def get_characters(members: List[ps2.OutfitMember]):
     return asyncio.gather(*[to_character(m) for m in members])
+
+
+async def get_chunked_characters(chunked_members: List[ps2.Character]) -> AsyncGenerator[None, List[ps2.Character]]:
+    for chunk in chunked_members:
+        return await get_characters(chunk)
+
+get_all_chars = pipe_async(
+    get_dtwm(DTWM_ID),
+    with_retry(get_members),
+    chunk_members(),
+    get_chunked_characters,
+)
 
 
 async def get_kills(char: ps2.Character):
@@ -86,13 +108,6 @@ async def get_kills(char: ps2.Character):
 def kills_per_char(chars: List[ps2.Character]):
     # check what return asyncio.gather does
     return asyncio.gather(*[get_kills(c) for c in chars])
-
-
-get_all_chars = pipe_async(
-    get_dtwm(DTWM_ID),
-    with_retry(get_members),
-    with_retry(get_characters)
-)
 
 
 async def main():
