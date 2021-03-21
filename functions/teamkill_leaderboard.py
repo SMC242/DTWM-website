@@ -2,6 +2,7 @@ import asyncio
 import auraxium
 from typing import AsyncGenerator, Coroutine, List, Union, Callable, Any
 from auraxium import ps2
+from auraxium.census import Query
 from auraxium.errors import MissingServiceIDError
 from inspect import iscoroutinefunction as is_coro
 from math import floor
@@ -110,11 +111,34 @@ def kills_per_char(chars: List[ps2.Character]):
     return asyncio.gather(*[get_kills(c) for c in chars])
 
 
+def query_outfit(outfit_id: int):
+    return Query("outfit_member", outfit_id=outfit_id).limit(1000)
+
+
+def with_character_query(query: Query):
+    query.create_join("character")
+    return query
+
+
+def with_kills_query(query: Query):
+    query.create_join("event.type=KILL")
+    return query
+
+
+kills_per_character_query = pipe_async(
+    query_outfit, with_character_query, with_kills_query)
+
+
+def get_kills_per_char(outfit_id: int):
+    async def get_kills_per_char_inner(client: auraxium.Client):
+        query = await kills_per_character_query(outfit_id)
+        return await client.request(query)
+    return get_kills_per_char_inner
+
+
 async def main():
     async with auraxium.Client(service_id=API_KEY) as client:
-        characters = await get_all_chars(client)
-
-        kills_per_character = kills_per_char(characters)
+        kills_per_character = await get_kills_per_char(DTWM_ID)(client)
         print(kills_per_character)
 
 
