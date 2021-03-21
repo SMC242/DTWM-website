@@ -3,9 +3,10 @@ import auraxium
 from typing import AsyncGenerator, Coroutine, List, Union, Callable, Any
 from auraxium import ps2
 from auraxium.census import Query
-from auraxium.errors import MissingServiceIDError
+from json import dumps
 from inspect import iscoroutinefunction as is_coro
-from math import floor
+from enum import Enum
+from functools import partial
 
 # constants
 
@@ -36,20 +37,6 @@ def pipe_async(*funcs: List[Union[Coroutine, Callable]]):
     return pipe_async_inner
 
 
-def with_retry(func):
-    async def with_retry_inner(*args):
-        try:
-            result = await func(*args)
-        except MissingServiceIDError:
-            print("Rate limited. Retrying...")
-            for i in range(6):
-                await asyncio.sleep(10)
-                print(f"Waited {i + 1 * 10} seconds so far")
-            result = await func(*args)
-        return result
-    return with_retry_inner
-
-
 def with_debug(func):
     async def with_debug_inner(*args):
         print(f"Arguments for function {func} were: {args}")
@@ -59,56 +46,19 @@ def with_debug(func):
     return with_debug_inner
 
 
-def get_dtwm(dtwm_id: int) -> Coroutine[None, None, ps2.Outfit]:
-    async def get_dtwm_inner(client: auraxium.Client):
-        result = await client.get_by_id(ps2.Outfit, dtwm_id)
-        if not result:
-            raise ValueError(
-                "Failed to get DTWM outfit. Check that the DTWM id is correct")
-        return result
-    return get_dtwm_inner
+def prettify(data): return dumps(data, sort_keys=True, indent=4)
 
 
-async def get_members(outfit: ps2.Outfit):
-    return await outfit.members().flatten()
+def pretty_print(data: dict) -> dict:
+    print(prettify(data))
+    return data
 
 
-def chunk_members(chunk_size: int = 20):
-    def chunk_members_inner(members: List[ps2.OutfitMember]):
-        def chunked_members():
-            for offset in range(1, floor(len(members) / chunk_size)):
-                yield members[:offset * chunk_size]
-        return chunked_members()
-    return chunk_members_inner
-
-
-async def to_character(member: ps2.OutfitMember):
-    return await member.character()
-
-
-def get_characters(members: List[ps2.OutfitMember]):
-    return asyncio.gather(*[to_character(m) for m in members])
-
-
-async def get_chunked_characters(chunked_members: List[ps2.Character]) -> AsyncGenerator[None, List[ps2.Character]]:
-    for chunk in chunked_members:
-        return await get_characters(chunk)
-
-get_all_chars = pipe_async(
-    get_dtwm(DTWM_ID),
-    with_retry(get_members),
-    chunk_members(),
-    get_chunked_characters,
-)
-
-
-async def get_kills(char: ps2.Character):
-    return await char.events(type="KILL")
-
-
-def kills_per_char(chars: List[ps2.Character]):
-    # check what return asyncio.gather does
-    return asyncio.gather(*[get_kills(c) for c in chars])
+def map_async(f: Callable):
+    async def map_async_inner(data: List[Any]) -> AsyncGenerator[None, dict]:
+        for x in data:
+            yield await f(x)
+    return map_async_inner
 
 
 def query_outfit(outfit_id: int):
@@ -120,26 +70,48 @@ def with_character_query(query: Query):
     return query
 
 
-def with_kills_query(query: Query):
-    query.create_join("event.type=KILL")
+get_characters_query = pipe_async(
+    query_outfit, with_character_query)
+
+
+def get_chars(outfit_id: int):
+    async def get_kills_per_char_inner(client: auraxium.Client):
+        query = await get_characters_query(outfit_id)
+        result = await client.request(query)
+        return result["outfit_member_list"]
+    return get_kills_per_char_inner
+
+
+def kills_query(char: ps2.Character):
+    query = Query("event",
+                  type="KILL").limit(1000)
+    query.create_join("attacker_character_id=character_id")
     return query
 
 
-kills_per_character_query = pipe_async(
-    query_outfit, with_character_query, with_kills_query)
+def do_kills_query(client):
+    async def do_kills_query_inner(char: ps2.Character):
+        return await client.request(kills_query(char))
+    return do_kills_query_inner
 
 
-def get_kills_per_char(outfit_id: int):
-    async def get_kills_per_char_inner(client: auraxium.Client):
-        query = await kills_per_character_query(outfit_id)
-        return await client.request(query)
-    return get_kills_per_char_inner
+class Faction(Enum):
+    VS = 1
+    NC = 2
+    TR = 3
 
 
 async def main():
     async with auraxium.Client(service_id=API_KEY) as client:
-        kills_per_character = await get_kills_per_char(DTWM_ID)(client)
-        print(kills_per_character)
+        chars = await get_chars(DTWM_ID)(client)
+        outfit_kills = map_async(do_kills_query(client))(chars)
+        i = 0
+        async for kills_list in outfit_kills:
+            if i == 3:
+                break
+            print(f"----\n{i}\n----")
+            pretty_print(kills_list)
+            i += 1
 
 
 asyncio.get_event_loop().run_until_complete(main())
