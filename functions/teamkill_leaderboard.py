@@ -5,10 +5,6 @@ from auraxium import ps2
 from auraxium.census import Query
 from json import dumps
 from inspect import iscoroutinefunction as is_coro
-from enum import Enum
-from functools import partial
-
-# constants
 
 
 def read_file(path: str):
@@ -16,6 +12,7 @@ def read_file(path: str):
         return [line.strip() for line in f.readlines()]
 
 
+# constants
 API_KEY = read_file("PS2_API_KEY.txt")[0]
 DTWM_ID = 37566723466738093
 
@@ -82,36 +79,34 @@ def get_chars(outfit_id: int):
     return get_kills_per_char_inner
 
 
-def kills_query(char: ps2.Character):
+def total_kills_query(char: ps2.Character):
     query = Query("event",
                   type="KILL").limit(1000)
-    query.create_join("attacker_character_id=character_id")
+    query.create_join(f"attacker_character_id={char['character_id']}")
     return query
 
 
-def do_kills_query(client):
-    async def do_kills_query_inner(char: ps2.Character):
-        return await client.request(kills_query(char))
-    return do_kills_query_inner
+def do_total_kills_query(client):
+    async def do_total_kills_query_inner(char: ps2.Character):
+        return await client.request(total_kills_query(char))
+    return do_total_kills_query_inner
 
 
-class Faction(Enum):
-    VS = 1
-    NC = 2
-    TR = 3
+def experimental(client):
+    async def experimental_inner(char):
+        q = Query("characters_leaderboard", name="Kills", period="Forever")
+        q.has(f"character_id={char['character_id']}")
+        return await client.request(q)
+    return experimental_inner
 
 
 async def main():
     async with auraxium.Client(service_id=API_KEY) as client:
         chars = await get_chars(DTWM_ID)(client)
-        outfit_kills = map_async(do_kills_query(client))(chars)
-        i = 0
-        async for kills_list in outfit_kills:
-            if i == 3:
-                break
-            print(f"----\n{i}\n----")
-            pretty_print(kills_list)
-            i += 1
+        pretty_print(await experimental(client)(chars[0]))
+        # https://census.daybreakgames.com/s:PS2Damagerequest/get/ps2:v2/single_character_by_id?character_id=5428926375525123617
+        # That endpoint has probably everything I need
+        #outfit_kills = map_async(do_total_kills_query(client))(chars)
 
 
 asyncio.get_event_loop().run_until_complete(main())
