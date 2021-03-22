@@ -1,10 +1,10 @@
 import asyncio
 import auraxium
-from typing import AsyncGenerator, Coroutine, List, Union, Callable, Any
+from typing import AsyncGenerator, Awaitable, Coroutine, List, Union, Callable, Any, Optional
 from auraxium import ps2
 from auraxium.census import Query
-from json import dumps, load
-from inspect import iscoroutinefunction as is_coro
+from json import dumps
+from inspect import iscoroutinefunction as is_coro_func, iscoroutine as is_coro
 
 
 def read_file(path: str):
@@ -20,6 +20,8 @@ DTWM_ID = 37566723466738093
 def call_func(func: Union[Coroutine, Callable]):
     async def call_func_inner(args):
         if is_coro(func):
+            return await func
+        elif is_coro_func(func):
             return await func(*args)
         return func(*args)
     return call_func_inner
@@ -65,7 +67,7 @@ def get_keys(keys: Union[List[str], str]):
 
 
 def map_async(f: Callable):
-    async def map_async_inner(data: List[Any]) -> AsyncGenerator[None, dict]:
+    async def map_async_inner(data: List[Any]) -> AsyncGenerator[None, Any]:
         for x in data:
             yield await f(x)
     return map_async_inner
@@ -73,6 +75,25 @@ def map_async(f: Callable):
 
 async def flatten(gen: AsyncGenerator) -> List[Any]:
     return [e async for e in gen]
+
+
+def limited_flatten(gen: AsyncGenerator) -> List[Any]:
+    async def limited_flatten_inner(limit: int):
+        stop_signal = "STOP_NOW"
+
+        async def inner_iter(index: int) -> Union[Any, str]:
+            if index == limit:
+                return stop_signal
+            return await next(gen)
+
+        results = []
+        for i in range(limit):
+            res = await inner_iter(i)
+            if res == stop_signal:
+                return results
+            results.append(res)
+        return results
+    return limited_flatten_inner
 
 
 def query_outfit(outfit_id: int):
@@ -110,10 +131,10 @@ def do_total_kills_query(client):
 
 
 def get_single_char(client: auraxium.Client):
-    async def experimental_inner(char):
+    async def get_single_char_inner(char):
         q = Query("single_character_by_id", character_id=char["character_id"])
         return await client.request(q)
-    return experimental_inner
+    return get_single_char_inner
 
 
 def get_single_char_stats(data: dict):
@@ -139,8 +160,8 @@ def to_kpm(stats: dict):
     return kills / time_played
 
 
-async def kpm_from_char(client):
-    return await pipe_async(
+def kpm_from_char(client) -> Awaitable[ps2.Character]:
+    return pipe_async(
         get_single_char(client),
         get_single_char_stats,
         to_kpm
@@ -149,7 +170,8 @@ async def kpm_from_char(client):
 
 async def main():
     async with auraxium.Client(service_id=API_KEY) as client:
-        kpms = await pipe_async(get_chars(DTWM_ID), map_async(kpm_from_char), flatten)(client)
+        chars = await get_chars(DTWM_ID)(client)
+        kpms = await flatten(map_async(kpm_from_char(client))(chars))
 
         print(kpms)
         # chars = await get_chars(DTWM_ID)(client)
