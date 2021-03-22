@@ -3,7 +3,7 @@ import auraxium
 from typing import AsyncGenerator, Coroutine, List, Union, Callable, Any
 from auraxium import ps2
 from auraxium.census import Query
-from json import dumps
+from json import dumps, load
 from inspect import iscoroutinefunction as is_coro
 
 
@@ -51,11 +51,28 @@ def pretty_print(data: dict) -> dict:
     return data
 
 
+def get_keys(keys: Union[List[str], str]):
+    def get_keys_inner(data: dict):
+        if isinstance(keys, str):
+            head, tail = keys, None
+        else:
+            head, *tail = keys
+        value = data[head]
+        if tail:
+            return get_keys(tail)(value)
+        return value
+    return get_keys_inner
+
+
 def map_async(f: Callable):
     async def map_async_inner(data: List[Any]) -> AsyncGenerator[None, dict]:
         for x in data:
             yield await f(x)
     return map_async_inner
+
+
+async def flatten(gen: AsyncGenerator) -> List[Any]:
+    return [e async for e in gen]
 
 
 def query_outfit(outfit_id: int):
@@ -92,18 +109,54 @@ def do_total_kills_query(client):
     return do_total_kills_query_inner
 
 
-def experimental(client):
+def get_single_char(client: auraxium.Client):
     async def experimental_inner(char):
-        q = Query("characters_leaderboard", name="Kills", period="Forever")
-        q.has(f"character_id={char['character_id']}")
+        q = Query("single_character_by_id", character_id=char["character_id"])
         return await client.request(q)
     return experimental_inner
 
 
+def get_single_char_stats(data: dict):
+    keys = [
+        "single_character_by_id_list",
+        0,
+        "stats",
+        "stat_history",
+    ]
+    return get_keys(keys)(data)
+
+
+def get_stats(keys: List[List[str]]):
+    def get_stat_inner(stats: dict):
+        return [get_keys(key_list)(stats) for key_list in keys]
+    return get_stat_inner
+
+
+def to_kpm(stats: dict):
+    raw = get_stats([["kills", "all_time"], ["time", "all_time"]])(stats)
+    kills, time_played = list(
+        map(int, raw))
+    return kills / time_played
+
+
+async def kpm_from_char(client):
+    return await pipe_async(
+        get_single_char(client),
+        get_single_char_stats,
+        to_kpm
+    )
+
+
 async def main():
     async with auraxium.Client(service_id=API_KEY) as client:
-        chars = await get_chars(DTWM_ID)(client)
-        pretty_print(await experimental(client)(chars[0]))
+        kpms = await pipe_async(get_chars(DTWM_ID), map_async(kpm_from_char), flatten)(client)
+
+        print(kpms)
+        # chars = await get_chars(DTWM_ID)(client)
+        # res = await experimental(client)(chars[0])
+        # pretty_print(res)
+        # with open("dump.json", "w") as f:
+        #    f.write(dumps(res))
         # https://census.daybreakgames.com/s:PS2Damagerequest/get/ps2:v2/single_character_by_id?character_id=5428926375525123617
         # That endpoint has probably everything I need
         #outfit_kills = map_async(do_total_kills_query(client))(chars)
