@@ -100,39 +100,25 @@ def query_outfit(outfit_id: int):
     return query_factory("outfit_member")(outfit_id=outfit_id)()
 
 
-def with_character_query(query: Query):
-    query.create_join("character")
-    return query
-
-
-get_characters_query = pipe_async(
-    query_outfit, with_character_query)
-
-
-def get_chars(outfit_id: int):
+def get_outfit_members(outfit_id: int):
     async def get_kills_per_char_inner(client: auraxium.Client):
-        query = await get_characters_query(outfit_id)
+        query = query_outfit(outfit_id)
         result = await client.request(query)
         return result["outfit_member_list"]
     return get_kills_per_char_inner
 
 
-def total_kills_query(char: ps2.Character):
-    query = query_factory("event")(type="KILL")(
-        f"attacker_character_id={char['character_id']}")
-    return query
+def chars_to_ids(chars: List[dict]):
+    return [c["character_id"] for c in chars]
 
 
-def do_total_kills_query(client):
-    async def do_total_kills_query_inner(char: ps2.Character):
-        return await client.request(total_kills_query(char))
-    return do_total_kills_query_inner
+get_outfit_char_ids = pipe_async(get_outfit_members(DTWM_ID), chars_to_ids)
 
 
 def get_single_char(client: auraxium.Client):
-    async def get_single_char_inner(char):
+    async def get_single_char_inner(char_id: int):
         q = query_factory("single_character_by_id")(
-            character_id=char["character_id"])()
+            character_id=char_id)()
         return await client.request(q)
     return get_single_char_inner
 
@@ -170,16 +156,16 @@ def kpm_from_char(client) -> Awaitable[ps2.Character]:
 
 
 def kpm_generator(client):
-    def kpm_generator_inner(chars):
-        return map_async(kpm_from_char(client))(chars)
+    def kpm_generator_inner(char_ids: List[int]):
+        return map_async(kpm_from_char(client))(char_ids)
     return kpm_generator_inner
 
 
-async def chunked_kpms(client, chars, chunk_size: int = 5, pause_seconds: float = 10.0):
+async def chunked_kpms(client: auraxium.Client, char_ids: List[int], chunk_size: int = 5, pause_seconds: float = 10.0):
     def next_(gen): return gen.__anext__()
     chunk = []
-    gen = kpm_generator(client)(chars)
-    for i in range(len(chars)):
+    gen = kpm_generator(client)(char_ids)
+    for i in range(len(char_ids)):
         # Force a delay to prevent rate limit
         if i != 0 and i % chunk_size == 0:
             yield chunk
@@ -190,18 +176,9 @@ async def chunked_kpms(client, chars, chunk_size: int = 5, pause_seconds: float 
 
 async def main():
     async with auraxium.Client(service_id=API_KEY) as client:
-        chars = await get_chars(DTWM_ID)(client)
-        async for chunk in chunked_kpms(client, chars):
+        ids = await get_outfit_char_ids(client)
+        async for chunk in chunked_kpms(client, ids):
             print([k for k in chunk])
-
-        # chars = await get_chars(DTWM_ID)(client)
-        # res = await experimental(client)(chars[0])
-        # pretty_print(res)
-        # with open("dump.json", "w") as f:
-        #    f.write(dumps(res))
-        # https://census.daybreakgames.com/s:PS2Damagerequest/get/ps2:v2/single_character_by_id?character_id=5428926375525123617
-        # That endpoint has probably everything I need
-        # outfit_kills = map_async(do_total_kills_query(client))(chars)
 
 
 asyncio.get_event_loop().run_until_complete(main())
