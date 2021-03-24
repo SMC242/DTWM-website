@@ -1,6 +1,6 @@
 import asyncio
 import auraxium
-from typing import AsyncGenerator, Awaitable, Coroutine, List, Union, Callable, Any, Optional
+from typing import AsyncGenerator, Tuple, Coroutine, List, Union, Callable, Any, Optional
 from auraxium import ps2
 from auraxium.census import Query
 from json import dumps
@@ -26,6 +26,15 @@ def call_func(func: Union[Coroutine, Callable]):
             return await func(*args)
         return func(*args)
     return call_func_inner
+
+
+def pipe(*funcs: Tuple[Callable]):
+    def pipe_inner(*args):
+        result = funcs[0](*args)
+        for func in funcs[1:]:
+            result = func(result)
+        return result
+    return pipe_inner
 
 
 def pipe_async(*funcs: List[Union[Coroutine, Callable]]):
@@ -120,20 +129,26 @@ def get_single_char(client: auraxium.Client):
     async def get_single_char_inner(char_id: int):
         q = query_factory("single_character_by_id")(
             character_id=char_id)()
-        return await client.request(q)
+        data = await client.request(q)
+        return get_keys(["single_character_by_id_list", 0])(data)
     return get_single_char_inner
 
 
-def get_single_char_stats(data: dict):
+def char_gen(client: auraxium.Client):
+    def char_gen_inner(char_ids: List[int]) -> AsyncGenerator[None, dict]:
+        f = get_single_char(client)
+        return map_async(f)(char_ids)
+    return char_gen_inner
+
+
+def get_single_char_stats(char: dict):
     """Get the stat history of a character.
     This is useful for getting total stats like total kills"""
     keys = [
-        "single_character_by_id_list",
-        0,
         "stats",
         "stat_history",
     ]
-    return get_keys(keys)(data)
+    return get_keys(keys)(char)
 
 
 def get_stats(keys: List[List[str]]):
@@ -143,28 +158,55 @@ def get_stats(keys: List[List[str]]):
 
 
 def get_stat_dict_from_char(char: dict):
-    return get_keys(["stats", "stat"])(char)
+    return get_keys(["stats", "stat_by_faction"])(char)
 
 
-def get_kill_records(char: dict):
-    stat_record = get_stat_dict_from_char(char)
-    def is_kills(record): return record["stat_name"] == "kills"
-    return list(filter(is_kills, stat_record))
+def get_kill_records(stat_records: dict):
+    def is_kills(record):
+        return record["stat_name"] == "kills"
+    return list(filter(is_kills, stat_records))
 
 
 def enemy_kills_from_record(record: dict) -> int:
-    return record["value_forever_vs"] + record["value_forever_tr"]
+    return int(record["value_forever_vs"]) + int(record["value_forever_tr"])
 
 
 def total_enemy_kills(kill_records: List[dict]) -> int:
     def kills_from_record(acc, record): return acc + \
         enemy_kills_from_record(record)
-    return list(reduce(kills_from_record, kill_records, 0))
+    return reduce(kills_from_record, kill_records, 0)
+
+
+total_enemy_kills_from_char = pipe(
+    get_stat_dict_from_char,
+    get_kill_records,
+    total_enemy_kills
+)
+
+
+def total_kills_stat(char: dict) -> int:
+    stats = get_single_char_stats(char)
+    return int(get_keys(["kills", "all_time"])(stats))
+
+
+def teamkills(enemy_kills: int):
+    def teamkills_inner(total_kills: int) -> int:
+        return enemy_kills - total_kills
+    return teamkills_inner
 
 
 async def main():
     async with auraxium.Client(service_id=API_KEY) as client:
         ids = await get_outfit_char_ids(client)
+        chars = char_gen(client)(ids)
+        enemy_kills = []
+        total_kills = []
+        async for char in chars:
+            enemy_kills.append(total_enemy_kills_from_char(char))
+            total_kills.append(total_kills_stat(char))
+        tks = list(map(lambda kills: teamkills(
+            kills[0])(kills[1]), zip(enemy_kills, total_kills)))
+        print(tks)
 
 
 asyncio.get_event_loop().run_until_complete(main())
