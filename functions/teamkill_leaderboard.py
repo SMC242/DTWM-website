@@ -1,11 +1,12 @@
 import asyncio
 import auraxium
-from typing import AsyncGenerator, Tuple, Coroutine, List, Union, Callable, Any, Optional
+from typing import AsyncGenerator, Tuple, Coroutine, List, Union, Callable, Any, Iterable
 from auraxium import ps2
 from auraxium.census import Query
 from json import dumps
 from inspect import iscoroutinefunction as is_coro_func, iscoroutine as is_coro
 from functools import reduce
+from enum import Enum
 
 
 def read_file(path: str):
@@ -16,6 +17,12 @@ def read_file(path: str):
 # constants
 API_KEY = read_file("PS2_API_KEY.txt")[0]
 DTWM_ID = 37566723466738093
+
+
+class Faction(Enum):
+    VS = 1
+    NC = 2
+    TR = 3
 
 
 def call_func(func: Union[Coroutine, Callable]):
@@ -77,7 +84,7 @@ def get_keys(keys: Union[List[str], str]):
 
 
 def map_async(f: Callable):
-    async def map_async_inner(data: List[Any]) -> AsyncGenerator[None, Any]:
+    async def map_async_inner(data: Iterable[Any]) -> AsyncGenerator[None, Any]:
         for x in data:
             yield await f(x)
     return map_async_inner
@@ -85,12 +92,6 @@ def map_async(f: Callable):
 
 async def flatten(gen: AsyncGenerator) -> List[Any]:
     return [e async for e in gen]
-
-
-def limited_flatten(gen:  AsyncGenerator[None, Any]):
-    async def limited_flatten_inner(limit: int) -> AsyncGenerator[None, Any]:
-        return [await gen.__anext__() for i in range(limit)]
-    return limited_flatten_inner
 
 
 def query_factory(collection: str):
@@ -127,102 +128,60 @@ def get_chars(outfit_id: int):
     return get_kills_per_char_inner
 
 
-def total_kills_query(char: ps2.Character):
+def chars_to_ids(chars: List[dict]) -> List[int]:
+    return [int(c["character_id"]) for c in chars]
+
+
+get_outfit_ids = pipe_async(get_chars(DTWM_ID), chars_to_ids)
+
+
+def total_kills_query(char_id: int):
     query = query_factory("event")(type="KILL")(
-        f"attacker_character_id={char['character_id']}")
+        f"attacker_character_id={char_id}")
     return query
 
 
-def do_total_kills_query(client):
-    async def do_total_kills_query_inner(char: ps2.Character):
-        return await client.request(total_kills_query(char))
+def do_kill_event_query(client):
+    async def do_total_kills_query_inner(char_id: int):
+        return (await client.request(total_kills_query(char_id)))["event_list"]
     return do_total_kills_query_inner
 
 
-def get_single_char(client: auraxium.Client):
-    async def get_single_char_inner(char):
-        q = query_factory("single_character_by_id")(
-            character_id=char_id)()
-        data = await client.request(q)
-        return get_keys(["single_character_by_id_list", 0])(data)
-    return get_single_char_inner
+def character_query(id: int) -> Query:
+    return query_factory("character")(character_id=id)()
 
 
-def char_gen(client: auraxium.Client):
-    def char_gen_inner(char_ids: List[int]) -> AsyncGenerator[None, dict]:
-        f = get_single_char(client)
-        return map_async(f)(char_ids)
-    return char_gen_inner
+def get_char(client: auraxium.Client):
+    def char_from_response(response: dict) -> dict:
+        return get_keys(["character_list", 0])(response)
+
+    async def get_char_inner(id: int):
+        result = await client.request(character_query(id))
+        return char_from_response(result)
+    return get_char_inner
 
 
-def get_single_char_stats(char: dict):
-    """Get the stat history of a character.
-    This is useful for getting total stats like total kills"""
-    keys = [
-        "stats",
-        "stat_history",
-    ]
-    return get_keys(keys)(char)
+def kill_to_faction(client: auraxium.Client):
+    async def kill_to_faction_inner(kill_event: dict) -> Faction:
+        char = await get_char(client)(kill_event["character_id"])
+        print(char["name"]["first"])
+        return Faction(int(char["faction_id"]))
+    return kill_to_faction_inner
 
 
-def get_stats(keys: List[List[str]]):
-    def get_stat_inner(stats: dict):
-        return [get_keys(key_list)(stats) for key_list in keys]
-    return get_stat_inner
+def teamkills(client: auraxium.Client):
 
-
-def get_stat_dict_from_char(char: dict):
-    return get_keys(["stats", "stat_by_faction"])(char)
-
-
-def get_kill_records(stat_records: dict):
-    def is_kills(record):
-        return record["stat_name"] == "kills"
-    return list(filter(is_kills, stat_records))
-
-
-def kpm_generator(client):
-    def kpm_generator_inner(chars):
-        return map_async(kpm_from_char(client))(chars)
-    return kpm_generator_inner
-
-
-async def chunked_kpms(client, chars, chunk_size: int = 5, pause_seconds: float = 10.0):
-    def next_(gen): return gen.__anext__()
-    chunk = []
-    gen = kpm_generator(client)(chars)
-    for i in range(len(chars)):
-        # Force a delay to prevent rate limit
-        if i != 0 and i % chunk_size == 0:
-            yield chunk
-            chunk = []
-            await asyncio.sleep(pause_seconds)
-        chunk.append(await next_(gen))
-
-
-total_enemy_kills_from_char = pipe(
-    get_stat_dict_from_char,
-    get_kill_records,
-    total_enemy_kills
-)
-
-
-def total_kills_stat(char: dict) -> int:
-    stats = get_single_char_stats(char)
-    return int(get_keys(["kills", "all_time"])(stats))
-
-
-def teamkills(enemy_kills: int):
-    def teamkills_inner(total_kills: int) -> int:
-        return enemy_kills - total_kills
-    return teamkills_inner
+    async def teamkills_inner(char_id: int):
+        kill_events = await do_total_kills_query(client)(char_id)
+        killed_factions = map_async(kill_to_faction)(client)(kill_events)
+        def is_tk(faction): return faction == =
 
 
 async def main():
     async with auraxium.Client(service_id=API_KEY) as client:
-        ids = await get_outfit_char_ids(client)
-        async for chunk in chunked_kpms(client, ids):
-            print([k for k in chunk])
+        ids = await get_outfit_ids(client)
+        kills = await do_total_kills_query(client)(ids[0])
+        print(await kill_to_faction(client)(kills[0]))
 
         # chars = await get_chars(DTWM_ID)(client)
         # res = await experimental(client)(chars[0])
