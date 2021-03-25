@@ -8,7 +8,7 @@ from functional_utils import read_file, pipe_async, map_curried, map_async, get_
 
 # constants
 # Make sure you don't commit the API key -_-
-# If getting service id errors, check that PS2_API_key matches /s:w+/
+# If getting service id errors, check that PS2_API_key matches /s:\w+/
 API_KEY = read_file("PS2_API_KEY.txt")[0]
 DTWM_ID = 37566723466738093
 
