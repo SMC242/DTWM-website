@@ -84,7 +84,7 @@ def kill_event_query(char_id: int):
 def do_kill_event_query(client):
     """Get the kill events for a character"""
     async def do_total_kills_query_inner(char_id: int):
-        result = await client.request(kill_event_query(char_id)())
+        result = await client.request(kill_event_query(char_id)(250))
         return result["event_list"]
     return do_total_kills_query_inner
 
@@ -145,7 +145,7 @@ def teamkills(client: Client):
                 flatten
             )(kill_events)
             tks: Iterator[bool] = map_curried(is_tk)(killed_factions)
-            return reduce(count_truthy, tks)
+            return reduce(count_truthy, tks, 0)
         return teamkills_inner2
     return teamkills_inner
 
@@ -186,7 +186,7 @@ def not_nso_outfit(factions: List[Faction]) -> Optional[Faction]:
     """
     try:
         # Assume that if the first 5 characters are NSO, all of them are
-        return find_first_non_nso(factions[5:])
+        return find_first_non_nso(factions[:5])
     except ValueError:
         return None
 
@@ -201,16 +201,18 @@ def convert_nso(outfit_faction: Faction):
 async def main():
     async with Client(service_id=API_KEY) as client:
         # Fetch the outfit
-        chars = await get_chars(DTWM_ID)(client)
+        # Generators are consumed upon usage, so I need a list
+        chars = list(await get_chars(DTWM_ID)(client))
         ids = chars_to_ids(chars)
 
         # Check that it's not an NSO outfit
         first_5_chars = get_n(5)(chars)
-        first_5_factions = await flatten(map_async(faction_from_char)(first_5_chars))
+        first_5_factions = list(map_curried(faction_from_char)(first_5_chars))
         outfit_faction = not_nso_outfit(first_5_factions)
         if not outfit_faction:
             # TODO: handle NSO outfit
-            pass
+            print("NSO outfit. Exiting...")
+            return
 
         # Conform NSOs with the faction of the outfit
         cleaned_chars = map_curried(convert_nso(outfit_faction))(chars)
