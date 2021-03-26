@@ -138,15 +138,15 @@ def teamkills(client: Client):
         def is_tk(killed_faction: Faction):
             return killed_faction == char_faction
 
-        async def teamkills_inner2(char_id: int):
-            kill_events = await do_kill_event_query(client)(char_id)
-            killed_factions = await pipe_async(
-                map_async(kill_to_faction(client)),
-                flatten
-            )(kill_events)
-            tks: Iterator[bool] = map_curried(is_tk)(killed_factions)
-            return reduce(count_truthy, tks, 0)
-        return teamkills_inner2
+        teamkills_inner_func = pipe_async(
+            do_kill_event_query(client),
+            map_async(kill_to_faction(client)),
+            flatten,
+            map_curried(is_tk),
+            lambda tks: reduce(count_truthy, tks, 0)
+        )
+
+        return teamkills_inner_func
     return teamkills_inner
 
 
