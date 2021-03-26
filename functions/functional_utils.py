@@ -6,6 +6,9 @@ from time import time
 
 T = TypeVar('T')
 T2 = TypeVar('T2')
+T3 = TypeVar('T3')
+T4 = TypeVar('T4')
+T5 = TypeVar('T5')
 
 FuncT = Callable[..., T]  # Generic functin
 CoroT = Coroutine[Any, Any, T]  # Generic coroutine
@@ -32,30 +35,98 @@ def call_func(func: CoroFuncOptT[T]) -> CoroFuncT[T]:
     return call_func_inner
 
 
-def pipe(*funcs: FuncT) -> FuncT:
+@overload
+def pipe(funcs: Tuple[FuncT[T]]) -> FuncT[T]:
+    # Type hint only signature (1 arg)
+    ...
+
+
+@overload
+def pipe(funcs: Tuple[FuncT[T], Callable[[T], T2]]) -> FuncT[T2]:
+    # Type hint only signature (2 args)
+    ...
+
+
+@overload
+def pipe(funcs: Tuple[FuncT[T], Callable[[T], T2], Callable[[T2], T3]]) -> FuncT[T3]:
+    # Type hint only signature (3 args)
+    ...
+
+
+@overload
+def pipe(funcs: Tuple[FuncT[T], Callable[[T], T2], Callable[[T2], T3], Callable[[T3], T4]]) -> FuncT[T4]:
+    # Type hint only signature (4 args)
+    ...
+
+
+@overload
+def pipe(funcs: Tuple[FuncT[T], Callable[[T], T2], Callable[[T2], T3], Callable[[T3], T4], Callable[[T4], T5]]) -> FuncT[T5]:
+    # Type hint only signature (5 args)
+    ...
+
+
+def pipe(funcs: Tuple[FuncT[T], ...]) -> FuncT[T]:
     """
     Call each function on the results of the last.
     The arguments will be passed to the first function only.
     """
-    def pipe_inner(*args, **kwargs):
-        result = funcs[0](*args, **kwargs)
+    if not funcs:
+        raise ValueError('Functions tuple is empty')
+
+    def pipe_inner(*args: Any, **kwargs: Any) -> T:
+        result: Any = funcs[0](*args, **kwargs)
         for func in funcs[1:]:
             result = func(result)
         return result
+
     return pipe_inner
 
 
-def pipe_async(*funcs: CoroFuncOptT) -> CoroFuncT:
+@overload
+def pipe_async(funcs: Tuple[CoroFuncOptT[T]]) -> CoroFuncT[T]:
+    # Type hint only signature (1 arg)
+    ...
+
+
+@overload
+def pipe_async(funcs: Tuple[CoroFuncOptT[T], Callable[[T], Awaitable[T2]]]) -> CoroFuncT[T2]:
+    # Type hint only signature (2 args)
+    ...
+
+
+@overload
+def pipe_async(funcs: Tuple[CoroFuncOptT[T], Callable[[T], Awaitable[T2]], Callable[[T2], Awaitable[T3]]]) -> CoroFuncT[T3]:
+    # Type hint only signature (3 args)
+    ...
+
+
+@overload
+def pipe_async(funcs: Tuple[CoroFuncOptT[T], Callable[[T], Awaitable[T2]], Callable[[T2], Awaitable[T3]], Callable[[T3], Awaitable[T4]]]) -> CoroFuncT[T4]:
+    # Type hint only signature (4 args)
+    ...
+
+
+@overload
+def pipe_async(funcs: Tuple[CoroFuncOptT[T], Callable[[T], Awaitable[T2]], Callable[[T2], Awaitable[T3]], Callable[[T3], Awaitable[T4]], Callable[[T4], Awaitable[T5]]]) -> CoroFuncT[T5]:
+    # Type hint only signature (5 args)
+    ...
+
+
+def pipe_async(funcs: Tuple[CoroFuncOptT[T], ...]) -> CoroFuncT[T]:
     """
     Call each function on the results of the last.
     The arguments will be passed to the first function only.
     Supports sync and async functions.
     """
-    async def pipe_async_inner(*args, **kwargs):
-        result = await call_func(funcs[0])(args, kwargs)
+    if not funcs:
+        raise ValueError('Functions tuple is empty')
+
+    async def pipe_async_inner(*args: Any, **kwargs: Any) -> T:
+        result: Any = await call_func(funcs[0])(args, kwargs)
         for func in funcs[1:]:
             result = await call_func(func)([result])
         return result
+
     return pipe_async_inner
 
 

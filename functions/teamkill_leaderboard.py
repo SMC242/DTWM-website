@@ -51,7 +51,7 @@ def with_character_query(query: Query):
 
 
 get_characters_query = pipe_async(
-    query_outfit, with_character_query)
+    (query_outfit, with_character_query))
 
 
 def get_chars(outfit_id: int):
@@ -141,8 +141,8 @@ def teamkills(client: Client):
         async def teamkills_inner2(char_id: int):
             kill_events = await do_kill_event_query(client)(char_id)
             killed_factions = await pipe_async(
-                map_async(kill_to_faction(client)),
-                flatten
+                (map_async(kill_to_faction(client)),
+                 flatten)
             )(kill_events)
             tks: Iterator[bool] = map_curried(is_tk)(killed_factions)
             return reduce(count_truthy, tks, 0)
