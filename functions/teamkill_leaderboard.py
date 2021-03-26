@@ -51,7 +51,7 @@ def with_character_query(query: Query):
 
 
 get_characters_query = pipe_async(
-    query_outfit, with_character_query)
+    (query_outfit, with_character_query))
 
 
 def get_chars(outfit_id: int):
@@ -138,13 +138,13 @@ def teamkills(client: Client):
         def is_tk(killed_faction: Faction):
             return killed_faction == char_faction
 
-        teamkills_inner_func = pipe_async(
+        teamkills_inner_func = pipe_async((
             do_kill_event_query(client),
             map_async(kill_to_faction(client)),
             flatten,
             map_curried(is_tk),
             lambda tks: reduce(count_truthy, tks, 0)
-        )
+        ))
 
         return teamkills_inner_func
     return teamkills_inner
