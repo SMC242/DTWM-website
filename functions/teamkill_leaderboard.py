@@ -1,6 +1,6 @@
 import asyncio
 from auraxium import Client
-from typing import Tuple, List, Any, Iterable, Iterator, Optional
+from typing import Tuple, List, Any, Iterable, Optional, Coroutine, Callable
 from auraxium.census import Query
 from functools import reduce
 from enum import Enum
@@ -75,7 +75,7 @@ def kill_event_query(char_id: int):
     """Build an API query for the kill events of a player."""
     def kill_event_inner(limit: int = 500):
         query = query_factory("event")(type="KILL")(
-            f"attacker_character_id={char_id}")
+            [f"attacker_character_id={char_id}"])
         query.limit(limit)
         return query
     return kill_event_inner
@@ -150,20 +150,22 @@ def teamkills(client: Client):
     return teamkills_inner
 
 
+TKRecord = Tuple[dict, int]  # a record of a character and their TKs
+
+
 def build_tks_table(chars: List[dict]):
     """
     Transform characters and their TKs into a list of records.
     ASSUMPTION: chars[0] corresponds to tks[0]
     """
-    Record = Tuple[dict, int]  # a record of a character and their TKs
 
-    def sort_by_tk(record: Record):
+    def sort_by_tk(record: TKRecord):
         return record[1]
 
     def build_tks_table_inner(tks: List[int]):
         if len(chars) != len(tks):
             raise ValueError("Uneven length between characters and tks")
-        records: Iterable[Record] = zip(chars, tks)
+        records: Iterable[TKRecord] = zip(chars, tks)
         return sorted(records, key=sort_by_tk)
     return build_tks_table_inner
 
