@@ -4,7 +4,7 @@ from typing import Tuple, List, Any, Iterable, Optional, Coroutine, Callable
 from auraxium.census import Query
 from functools import reduce
 from enum import Enum
-from functional_utils import read_file, pipe_async, map_curried, map_async, get_keys, flatten, with_debug, get_n, execute_many
+from functional_utils import read_file, pipe_async, map_curried, get_keys, with_debug, get_n, update_dict, execute_many_async, with_timing
 
 # constants
 # Make sure you don't commit the API key -_-
@@ -138,11 +138,9 @@ def teamkills(client: Client):
         def is_tk(killed_faction: Faction):
             return killed_faction == char_faction
 
-        k2f = kill_to_faction(client)
-
         teamkills_inner_func: Callable[[int], Coroutine] = pipe_async((
             do_kill_event_query(client),
-            lambda events: execute_many([k2f(event) for event in events]),
+            execute_many_async(kill_to_faction(client)),
             map_curried(is_tk),
             lambda tks: reduce(count_truthy, tks, 0)
         ))
@@ -203,7 +201,7 @@ def not_nso_outfit(factions: List[Faction]) -> Optional[Faction]:
 def convert_nso(outfit_faction: Faction):
     def convert_nso_inner(char: dict):
         faction = faction_from_char(char)
-        return char.update({"faction_id": outfit_faction}) if is_nso(faction) else char
+        return update_dict({"faction_id": outfit_faction}) if is_nso(faction) else char
     return convert_nso_inner
 
 
@@ -245,11 +243,10 @@ async def main(outfit_id: int = DTWM_ID):
             convert_nso(outfit_faction))(chars)]
 
         # build table
-        teamkills_per_member = map_async(
-            teamkills(client)(outfit_faction))(ids)
-        tks_flat = await flatten(teamkills_per_member)
-        table = build_tks_table(cleaned_chars)(tks_flat)
+        get_tks_with_progress = with_debug(teamkills(client)(outfit_faction))
+        teamkills_per_member = await execute_many_async(get_tks_with_progress)(ids)
+        table = build_tks_table(cleaned_chars)(teamkills_per_member)
         print(table)
 
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.get_event_loop().run_until_complete(with_timing(main)())

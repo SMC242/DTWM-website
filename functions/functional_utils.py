@@ -226,5 +226,29 @@ def read_file(path: str) -> List[str]:
         return [line.strip() for line in f.readlines()]
 
 
-async def execute_many(coros: List[Coroutine[None, None, Any]]) -> tuple:
+def to_coros(func: Callable[..., Coroutine[None, None, T]]):
+    """
+    Applies the function to the list of arguments and returns all the coroutines.
+    This is meant to be piped into execute_many.
+    """
+    def to_coros_inner(data: Iterable) -> List[Coroutine[None, None, T]]:
+        return [func(e) for e in data]
+    return to_coros_inner
+
+
+async def execute_many(coros: List[Coroutine[None, None, Any]]):
     return await gather(*coros)
+
+
+def execute_many_async(func: Callable[..., Coroutine[None, None, T]]):
+    def execute_many_async_inner(data: Iterable) -> Coroutine[None, None, List[T]]:
+        coros = to_coros(func)(data)
+        return execute_many(coros)
+    return execute_many_async_inner
+
+
+def update_dict(d1: dict):
+    """Merge the two dictionaries and return the new dictionary."""
+    def update_dict_inner(d2: dict):
+        return d1.update(d2) or d1
+    return update_dict_inner
