@@ -3,6 +3,7 @@ from functools import partial
 from typing import Awaitable, Dict, Hashable, Optional, TypeVar, Union, Coroutine, Callable, Tuple, List, Iterable, AsyncGenerator, Any, Iterator, cast, overload
 from inspect import iscoroutine as is_coro
 from time import time
+from asyncio import gather
 
 T = TypeVar('T')
 T2 = TypeVar('T2')
@@ -223,3 +224,7 @@ def get_n(n: int) -> Callable[[Iterable[T]], List[T]]:
 def read_file(path: str) -> List[str]:
     with open(path) as f:
         return [line.strip() for line in f.readlines()]
+
+
+async def execute_many(coros: List[Coroutine[None, None, Any]]) -> tuple:
+    return await gather(*coros)

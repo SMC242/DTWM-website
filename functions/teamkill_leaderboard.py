@@ -4,7 +4,7 @@ from typing import Tuple, List, Any, Iterable, Optional, Coroutine, Callable
 from auraxium.census import Query
 from functools import reduce
 from enum import Enum
-from functional_utils import read_file, pipe_async, map_curried, map_async, get_keys, flatten, with_debug, get_n
+from functional_utils import read_file, pipe_async, map_curried, map_async, get_keys, flatten, with_debug, get_n, execute_many
 
 # constants
 # Make sure you don't commit the API key -_-
@@ -138,10 +138,11 @@ def teamkills(client: Client):
         def is_tk(killed_faction: Faction):
             return killed_faction == char_faction
 
-        teamkills_inner_func = pipe_async((
+        k2f = kill_to_faction(client)
+
+        teamkills_inner_func: Callable[[int], Coroutine] = pipe_async((
             do_kill_event_query(client),
-            map_async(kill_to_faction(client)),
-            flatten,
+            lambda events: execute_many([k2f(event) for event in events]),
             map_curried(is_tk),
             lambda tks: reduce(count_truthy, tks, 0)
         ))
