@@ -154,6 +154,11 @@ def teamkills(client: Client):
 TKRecord = Tuple[dict, int]  # a record of a character and their TKs
 
 
+def char_to_name(char: dict) -> str:
+    """Get the name of a character."""
+    return get_keys(["name", "first"])(char)
+
+
 def build_tks_table(chars: List[dict]):
     """
     Transform characters and their TKs into a list of records.
@@ -166,7 +171,8 @@ def build_tks_table(chars: List[dict]):
     def build_tks_table_inner(tks: List[int]):
         if len(chars) != len(tks):
             raise ValueError("Uneven length between characters and tks")
-        records: Iterable[TKRecord] = zip(chars, tks)
+        names = map_curried(char_to_name)(chars)
+        records: Iterable[TKRecord] = zip(names, tks)
         return sorted(records, key=sort_by_tk)
     return build_tks_table_inner
 
@@ -201,27 +207,46 @@ def convert_nso(outfit_faction: Faction):
     return convert_nso_inner
 
 
-async def main():
-    async with Client(service_id=API_KEY) as client:
-        # Fetch the outfit
-        # Generators are consumed upon usage, so I need a list
-        chars = list(await get_chars(DTWM_ID)(client))
-        ids = chars_to_ids(chars)
-
-        # Check that it's not an NSO outfit
+def check_nso(chars: List[dict]):
+    """
+    Check if an outfit is NSO. Execute the callback if true.
+    The callable should accept the list of characters as its argument.
+    Returns the faction of the outfit.
+    """
+    def check_nso_inner(callback: Callable[[List[dict]], Any]):
         first_5_chars = get_n(5)(chars)
         first_5_factions = list(map_curried(faction_from_char)(first_5_chars))
         outfit_faction = not_nso_outfit(first_5_factions)
         if not outfit_faction:
-            # TODO: handle NSO outfit
-            print("NSO outfit. Exiting...")
+            callback(chars)
+        return outfit_faction
+    return check_nso_inner
+
+
+async def main(outfit_id: int = DTWM_ID):
+    def handle_nso(chars: List[dict]):
+        # TODO: handle NSO outfit
+        print("NSO outfit. Exiting...")
+        return
+
+    async with Client(service_id=API_KEY) as client:
+        # Fetch the outfit
+        # Generators are consumed upon usage, so I need a list
+        chars = list(await get_chars(outfit_id)(client))
+        ids = chars_to_ids(chars)
+
+        # Check that it's not an NSO outfit
+        outfit_faction = check_nso(chars)(handle_nso)
+        if not outfit_faction:
             return
 
         # Conform NSOs with the faction of the outfit
-        cleaned_chars = map_curried(convert_nso(outfit_faction))(chars)
+        cleaned_chars = [c for c in map_curried(
+            convert_nso(outfit_faction))(chars)]
 
-        debugged = with_debug(teamkills(client)(outfit_faction))
-        teamkills_per_member = map_async(debugged)(ids)
+        # build table
+        teamkills_per_member = map_async(
+            teamkills(client)(outfit_faction))(ids)
         tks_flat = await flatten(teamkills_per_member)
         table = build_tks_table(cleaned_chars)(tks_flat)
         print(table)
