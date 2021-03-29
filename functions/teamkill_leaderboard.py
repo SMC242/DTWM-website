@@ -59,7 +59,7 @@ def get_chars(outfit_id: int):
     def char_from_member(member):
         return member["character_id_join_character"]
 
-    async def get_kills_per_char_inner(client: Client):
+    async def get_kills_per_char_inner(client: Client) -> List[dict]:
         query = await get_characters_query(outfit_id)
         result = await client.request(query)
         return map_curried(char_from_member)(result["outfit_member_list"])
@@ -245,6 +245,14 @@ def check_nso(chars: List[dict]):
     return check_nso_inner
 
 
+def clean_chars(outfit_faction: Faction):
+    """Convert NSO characters to their outfit's faction."""
+    def clean_chars_inner(chars: List[dict]) -> List[dict]:
+        return [c for c in map_curried(
+            convert_nso(outfit_faction))(chars)]
+    return clean_chars_inner
+
+
 async def main(outfit_id: int = DTWM_ID):
     def handle_nso(chars: List[dict]):
         # TODO: handle NSO outfit
@@ -254,22 +262,23 @@ async def main(outfit_id: int = DTWM_ID):
     async with Client(service_id=API_KEY) as client:
         # Fetch the outfit
         # Generators are consumed upon usage, so I need a list
-        chars = list(await get_chars(outfit_id)(client))
-        ids = chars_to_ids(chars)
+        chars = list(await get_chars(outfit_id)(client))  # 0.8 seconds
+        ids = chars_to_ids(chars)  # negligible
 
         # Check that it's not an NSO outfit
-        outfit_faction = check_nso(chars)(handle_nso)
+        outfit_faction = check_nso(chars)(handle_nso)  # negligible
         if not outfit_faction:
             return
 
         # Conform NSOs with the faction of the outfit
-        cleaned_chars = [c for c in map_curried(
-            convert_nso(outfit_faction))(chars)]
+        cleaned_chars = clean_chars(outfit_faction)(chars)  # negligible
 
         # build table
-        get_tks_with_progress = with_debug(teamkills(client)(outfit_faction))
-        teamkills_per_member = await execute_many_async(get_tks_with_progress)(ids)
-        table = build_tks_table(cleaned_chars)(teamkills_per_member)
+        #get_tks_with_progress = with_debug(teamkills(client)(outfit_faction))
+        # 35.9 seconds
+        teamkills_per_member = await execute_many_async(teamkills(client)(outfit_faction))(ids)
+        table = build_tks_table(cleaned_chars)(
+            teamkills_per_member)  # negligible
         print(table)
 
 
