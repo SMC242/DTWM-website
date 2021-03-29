@@ -74,8 +74,8 @@ def chars_to_ids(chars: List[dict]) -> List[int]:
 def kill_event_query(char_id: int):
     """Build an API query for the kill events of a player."""
     def kill_event_inner(limit: int = 500):
-        query = query_factory("event")(type="KILL")(
-            [f"attacker_character_id={char_id}"])
+        query = query_factory("characters_event")(
+            type="KILL", character_id=char_id)()
         query.limit(limit)
         return query
     return kill_event_inner
@@ -85,7 +85,7 @@ def do_kill_event_query(client):
     """Get the kill events for a character"""
     async def do_total_kills_query_inner(char_id: int):
         result = await client.request(kill_event_query(char_id)(250))
-        return result["event_list"]
+        return result["characters_event_list"]
     return do_total_kills_query_inner
 
 
@@ -94,26 +94,44 @@ def character_query(id: int) -> Query:
     return query_factory("character")(character_id=id)()
 
 
-def get_char(client: Client):
-    """Request a character by id from the API"""
-    def char_from_response(response: dict) -> dict:
-        return get_keys(["character_list", 0])(response)
+def char_from_response(response: dict) -> dict:
+    return get_keys(["character_list", 0])(response)
 
-    def null_char(id: int):
-        """Create a fake character for if no character was returned for an ID."""
-        return {
-            "character_list": {
+
+def null_char(id: int):
+    """Create a fake character for if no character was returned for an ID."""
+    return {
+        "character_list": [
+            {
                 "name": "<null char>",
-                "faction_id": Faction.NSO,
+                "faction_id": str(Faction.NSO.value),
                 "character_id": id,
             },
-            "returned": "0"
-        }
+        ],
+        "returned": "0"
+    }
 
-    async def get_char_inner(id: int):
-        result = await client.request(character_query(id))
-        validated = result if int(result["returned"]) > 0 else null_char(id)
-        return char_from_response(validated)
+
+def with_show(fields: List[str]):
+    """Add a filter for the fields sent back from the query."""
+    def with_show_inner(query: Query) -> Query:
+        for field in fields:
+            query.show(field)
+        return query
+    return with_show_inner
+
+
+def get_char(client: Client):
+    """Request a character by id from the API"""
+    def get_char_inner(show_fields: List[str] = None):
+        async def get_char_inner2(id: int):
+            fields = show_fields or []
+            query = with_show(fields)(character_query(id))
+            result = await client.request(query)
+            validated = result if int(
+                result["returned"]) > 0 else null_char(id)
+            return char_from_response(validated)
+        return get_char_inner2
     return get_char_inner
 
 
@@ -125,7 +143,7 @@ def faction_from_char(char: dict) -> Faction:
 def kill_to_faction(client: Client):
     """Get the faction of the person killed in the event."""
     async def kill_to_faction_inner(kill_event: dict) -> Faction:
-        char = await get_char(client)(kill_event["character_id"])
+        char = await get_char(client)(["faction_id"])(kill_event["character_id"])
         return faction_from_char(char)
     return kill_to_faction_inner
 
