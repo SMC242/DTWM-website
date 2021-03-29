@@ -40,3 +40,4 @@ next-env.d.ts
 # tokens
 *_TOKEN.*
 *_KEY.*
+__pycache__/
