@@ -45,7 +45,11 @@ function MyApp({ Component, pageProps }: AppProps) {
           key="ogdesc"
         />
         <meta property="og:type" content="website" key="ogtype" />
-        <meta property="og:image" content={Skull} key="ogimage" />
+        <meta
+          property="og:image"
+          content="https://joindtwm.vercel.app/images/skull/DTWMSkull.big.png"
+          key="ogimage"
+        />
       </Head>
       <Component {...pageProps} />
     </ChakraProvider>
