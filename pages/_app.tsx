@@ -32,14 +32,23 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta name="theme-color" content="#e60ded" />
 
         {/* OpenGraph stuff */}
-        <meta property="og:site_name" content="DTWM" />
-        <meta property="og:url" content="https://joindtwm.vercel.app/" />
+        <meta property="og:site_name" content="DTWM" key="ogsitename" />
+        <meta
+          property="og:url"
+          content="https://joindtwm.vercel.app/"
+          key="ogurl"
+        />
         <meta
           property="og:description"
           content="The DTWM weebs are invading your computer..."
+          key="ogdesc"
         />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content="/skull/DTWMSkull.big.png" />
+        <meta property="og:type" content="website" key="ogtype" />
+        <meta
+          property="og:image"
+          content="/images/skull/DTWMSkull.big.png"
+          key="ogimage"
+        />
       </Head>
       <Component {...pageProps} />
     </ChakraProvider>
