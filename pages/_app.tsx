@@ -8,6 +8,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <ChakraProvider>
       <Head>
+        {/* favicon stuff */}
         <link
           rel="apple-touch-icon"
           sizes="180x180"
@@ -29,6 +30,13 @@ function MyApp({ Component, pageProps }: AppProps) {
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
         <meta name="msapplication-TileColor" content="#9f00a7" />
         <meta name="theme-color" content="#e60ded" />
+
+        {/* OpenGraph stuff */}
+        <meta property="og:site_name" content="DTWM" />
+        <meta property="og:url" content="https://joindtwm.vercel.app/" />
+        <meta property="og:description" content="" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="images/skull/DTWMSkull.big.png" />
       </Head>
       <Component {...pageProps} />
     </ChakraProvider>
