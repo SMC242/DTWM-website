@@ -91,20 +91,15 @@ def do_kill_event_query(client):
 
 def character_query(ids: List[int]) -> Query:
     """Build an API query for a character."""
-    return query_factory("character")(character_id=ids)()
+    return query_factory("character")(character_id=",".join(map(str, ids)))()
 
 
 def null_char(id: int):
     """Create a fake character for if no character was returned for an ID."""
     return {
-        "character_list": [
-            {
-                "name": "<null char>",
+        "name": "<null char>",
                 "faction_id": str(Faction.NSO.value),
                 "character_id": id,
-            },
-        ],
-        "returned": "0"
     }
 
 
