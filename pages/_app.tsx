@@ -3,6 +3,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 import React from "react";
 import { AppProps } from "next/app";
 import Head from "next/head";
+import Skull from "../images/skull/DTWMSkull.big.png";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -39,7 +40,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           content="DTWM weebs are invading your computer..."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="/skull/DTWMSkull.big.png" />
+        <meta property="og:image" content={Skull} />
       </Head>
       <Component {...pageProps} />
     </ChakraProvider>
