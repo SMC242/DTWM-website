@@ -152,6 +152,9 @@ def teamkills(client: Client):
     def count_truthy(acc: int, value: Any):
         return acc + 1 if value else acc
 
+    def count_tks(tks: List[Faction]) -> int:
+        return reduce(count_truthy, tks, 0)
+
     def teamkills_inner(char_faction: Faction):
         def is_tk(killed_faction: Faction):
             return killed_faction == char_faction
@@ -164,9 +167,10 @@ def teamkills(client: Client):
         teamkills_inner_func: Callable[[int], Coroutine] = pipe_async((
             do_kill_event_query(client),
             remove_suicides,
+            # all the time is spent here
             execute_many_async(kill_to_faction(client)),
             map_curried(is_tk),
-            lambda tks: reduce(count_truthy, tks, 0)
+            count_tks,
         ))
 
         return teamkills_inner_func
