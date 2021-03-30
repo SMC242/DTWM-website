@@ -3,7 +3,6 @@ import { ChakraProvider } from "@chakra-ui/react";
 import React from "react";
 import { AppProps } from "next/app";
 import Head from "next/head";
-import Skull from "../images/skull/DTWMSkull.big.png";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -37,10 +36,10 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta property="og:url" content="https://joindtwm.vercel.app/" />
         <meta
           property="og:description"
-          content="DTWM weebs are invading your computer..."
+          content="The DTWM weebs are invading your computer..."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content={Skull} />
+        <meta property="og:image" content="/skull/DTWMSkull.big.png" />
       </Head>
       <Component {...pageProps} />
     </ChakraProvider>
