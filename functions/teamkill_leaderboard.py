@@ -89,13 +89,9 @@ def do_kill_event_query(client):
     return do_total_kills_query_inner
 
 
-def character_query(id: int) -> Query:
+def character_query(ids: List[int]) -> Query:
     """Build an API query for a character."""
-    return query_factory("character")(character_id=id)()
-
-
-def char_from_response(response: dict) -> dict:
-    return get_keys(["character_list", 0])(response)
+    return query_factory("character")(character_id=ids)()
 
 
 def null_char(id: int):
@@ -121,18 +117,34 @@ def with_show(fields: List[str]):
     return with_show_inner
 
 
-def get_char(client: Client):
-    """Request a character by id from the API"""
-    def get_char_inner(show_fields: List[str] = None):
-        async def get_char_inner2(id: int):
+def find_char(chars: List[dict]):
+    """Find a character by ID within a list of characters."""
+    def find_char_inner(id: int) -> dict:
+        for char in chars:
+            if char["character_id"] == id:
+                return char
+        return null_char(id)
+    return find_char_inner
+
+
+def validate_char_result(chars: List[dict]):
+    """Insert null characters where no character was returned for an ID."""
+    def validate_char_result_inner(ids: List[int]) -> List[dict]:
+        return [find_char(chars)(id) for id in ids]
+    return validate_char_result_inner
+
+
+def get_chars(client: Client):
+    """Batch request characters by id from the API"""
+    def get_chars_inner(show_fields: List[str] = None):
+        async def get_chars_inner2(ids: List[int]):
             fields = show_fields or []
-            query = with_show(fields)(character_query(id))
+            query = with_show(fields)(character_query(ids))
             result = await client.request(query)
-            validated = result if int(
-                result["returned"]) > 0 else null_char(id)
-            return char_from_response(validated)
-        return get_char_inner2
-    return get_char_inner
+            chars = result["character_list"]
+            return validate_char_result(chars)(ids)
+        return get_chars_inner2
+    return get_chars_inner
 
 
 def faction_from_char(char: dict) -> Faction:
@@ -143,7 +155,7 @@ def faction_from_char(char: dict) -> Faction:
 def kill_to_faction(client: Client):
     """Get the faction of the person killed in the event."""
     async def kill_to_faction_inner(kill_event: dict) -> Faction:
-        char = await get_char(client)(["faction_id"])(kill_event["character_id"])
+        char = await get_chars(client)(["faction_id"])([kill_event["character_id"]])
         return faction_from_char(char)
     return kill_to_faction_inner
 
