@@ -54,7 +54,7 @@ get_characters_query = pipe_async(
     (query_outfit, with_character_query))
 
 
-def get_chars(outfit_id: int):
+def get_outfit_chars(outfit_id: int):
     """Get all the characters of an outfit by its ID."""
     def char_from_member(member):
         return member["character_id_join_character"]
@@ -129,7 +129,7 @@ def validate_char_result(chars: List[dict]):
     return validate_char_result_inner
 
 
-def get_chars(client: Client):
+def get_chars_batched(client: Client):
     """Batch request characters by id from the API"""
     def get_chars_inner(show_fields: List[str] = None):
         async def get_chars_inner2(ids: List[int]):
