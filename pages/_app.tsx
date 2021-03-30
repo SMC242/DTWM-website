@@ -46,7 +46,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta property="og:type" content="website" key="ogtype" />
         <meta
           property="og:image"
-          content="/images/skull/DTWMSkull.big.png"
+          content="skull/DTWMSkull.big.png"
           key="ogimage"
         />
       </Head>
