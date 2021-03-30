@@ -21,7 +21,11 @@
     "jsx": "preserve"
   },
   "include": [
-    "src"
+    "components/",
+    "images/",
+    "functions/",
+    "pages/",
+    "declarations/",
   ],
   "exclude": [
     "node_modules"
