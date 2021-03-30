@@ -47,7 +47,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta property="og:type" content="website" key="ogtype" />
         <meta
           property="og:image"
-          content="https://ibb.co/868rjgY"
+          content="https://i.ibb.co/r4yxZ2d/DTWMSkull-big.png"
           key="ogimage"
         />
       </Head>
