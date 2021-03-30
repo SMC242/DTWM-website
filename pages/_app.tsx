@@ -47,7 +47,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta property="og:type" content="website" key="ogtype" />
         <meta
           property="og:image"
-          content="https://i.ibb.co/r4yxZ2d/DTWMSkull-big.png"
+          content="https://joindtwm.vercel.app/_next/image?url=%2Fimages%2Fskull%2FDTWMSkull.big.png&w=256&q=75"
           key="ogimage"
         />
       </Head>
