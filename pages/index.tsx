@@ -9,7 +9,7 @@ const Home = () => (
       <title>DTWM - Home</title>
     </Head>
     <h3>Welcome to the DTWM website :^)</h3>
-    <Image width={200} height={200} src="images/skull/DTWMSkull.big.png" />
+    <Image width={200} height={200} src="/images/skull/DTWMSkull.big.png" />
   </>
 );
 
