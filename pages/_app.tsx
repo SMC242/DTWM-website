@@ -3,6 +3,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 import React from "react";
 import { AppProps } from "next/app";
 import Head from "next/head";
+import Skull from "../images/skull/DTWMSkull.big.png";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -44,7 +45,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           key="ogdesc"
         />
         <meta property="og:type" content="website" key="ogtype" />
-        <meta property="og:image" content="DTWMSkull.big.png" key="ogimage" />
+        <meta property="og:image" content={Skull} key="ogimage" />
       </Head>
       <Component {...pageProps} />
     </ChakraProvider>
