@@ -4,7 +4,8 @@ from typing import Tuple, List, Any, Iterable, Optional, Coroutine, Callable
 from auraxium.census import Query
 from functools import reduce
 from enum import Enum
-from functional_utils import read_file, pipe_async, map_curried, get_keys, with_debug, get_n, update_dict, execute_many_async, with_timing
+from functional_utils import read_file, pipe_async, map_curried, get_keys, with_debug, get_n, update_dict, execute_many_async, with_timing, chunk, pipe, map_async
+import itertools
 
 # constants
 # Make sure you don't commit the API key -_-
@@ -71,9 +72,9 @@ def chars_to_ids(chars: List[dict]) -> List[int]:
     return [int(c["character_id"]) for c in chars]
 
 
-def kill_event_query(char_id: int):
+def kill_event_query(limit: int = 500):
     """Build an API query for the kill events of a player."""
-    def kill_event_inner(limit: int = 500):
+    def kill_event_inner(char_id: int):
         query = query_factory("characters_event")(
             type="KILL", character_id=char_id)()
         query.limit(limit)
@@ -129,15 +130,26 @@ def validate_char_result(chars: List[dict]):
     return validate_char_result_inner
 
 
+def _query_chars(client: Client):
+    """Get characters from the API."""
+    def query_chars_inner(fields: List[str]):
+        async def query_chars_inner2(ids: List[int]):
+            query = with_show(fields)(character_query(ids))
+            result = await client.request(query)
+            chars = result["character_list"]
+            return validate_char_result(chars)(ids)
+        return query_chars_inner2
+    return query_chars_inner
+
+
 def get_chars_batched(client: Client):
     """Batch request characters by id from the API"""
     def get_chars_inner(show_fields: List[str] = None):
         async def get_chars_inner2(ids: List[int]):
             fields = show_fields or []
-            query = with_show(fields)(character_query(ids))
-            result = await client.request(query)
-            chars = result["character_list"]
-            return validate_char_result(chars)(ids)
+            batched_ids = chunk(100)(ids) if len(ids) > 100 else [ids]
+            results = await execute_many_async(_query_chars(client)(fields))(batched_ids)
+            return itertools.chain.from_iterable(results)
         return get_chars_inner2
     return get_chars_inner
 
@@ -147,39 +159,49 @@ def faction_from_char(char: dict) -> Faction:
     return Faction(int(char["faction_id"]))
 
 
-def kill_to_faction(client: Client):
+def kills_to_factions(client: Client):
     """Get the faction of the person killed in the event."""
-    async def kill_to_faction_inner(kill_event: dict) -> Faction:
-        char = await get_chars(client)(["faction_id"])([kill_event["character_id"]])
-        return faction_from_char(char)
-    return kill_to_faction_inner
+    async def kills_to_factions_inner(kill_events: List[dict]) -> Faction:
+        ids: List[int] = list(
+            map(lambda e: int(e["character_id"]), kill_events))
+        chars = await get_chars_batched(client)(["faction_id"])(ids)
+        return list(map_curried(faction_from_char)(chars))
+    return kills_to_factions_inner
 
 
-def teamkills(client: Client):
+def remove_suicides(events: List[dict]) -> List[dict]:
+    def is_not_suicide(event: dict) -> bool:
+        return event["character_id"] != event["attacker_character_id"]
+    return list(filter(is_not_suicide, events))
+
+
+def is_tk(char_faction: Faction):
+    def is_tk_inner(killed_faction: Faction):
+        return killed_faction == char_faction
+    return is_tk_inner
+
+
+def count_tks(char_faction: Faction) -> Callable[[List[dict]], List[int]]:
+    """Get a function to count the number of teamkills from a list of kill events."""
     def count_truthy(acc: int, value: Any):
         return acc + 1 if value else acc
 
-    def count_tks(tks: List[Faction]) -> int:
-        return reduce(count_truthy, tks, 0)
+    return pipe(
+        map_curried(is_tk(char_faction)),
+        lambda tks: reduce(count_truthy, tks, 0)
+    )
 
+
+def teamkills(client: Client):
     def teamkills_inner(char_faction: Faction):
-        def is_tk(killed_faction: Faction):
-            return killed_faction == char_faction
-
-        def remove_suicides(events: List[dict]) -> List[dict]:
-            def is_not_suicide(event: dict) -> bool:
-                return event["character_id"] != event["attacker_character_id"]
-            return list(filter(is_not_suicide, events))
-
         teamkills_inner_func: Callable[[int], Coroutine] = pipe_async((
             do_kill_event_query(client),
             remove_suicides,
             # all the time is spent here
-            execute_many_async(kill_to_faction(client)),
-            map_curried(is_tk),
+            kills_to_factions,
+            map_curried(is_tk(char_faction)),
             count_tks,
         ))
-
         return teamkills_inner_func
     return teamkills_inner
 
@@ -285,7 +307,7 @@ async def main(outfit_id: int = DTWM_ID):
         cleaned_chars = clean_chars(outfit_faction)(chars)  # negligible
 
         # build table
-        #get_tks_with_progress = with_debug(teamkills(client)(outfit_faction))
+        # get_tks_with_progress = with_debug(teamkills(client)(outfit_faction))
         # 35.9 seconds
         teamkills_per_member = await execute_many_async(teamkills(client)(outfit_faction))(ids)
         table = build_tks_table(cleaned_chars)(
