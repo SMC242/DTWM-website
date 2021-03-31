@@ -265,18 +265,13 @@ def convert_nso(outfit_faction: Faction):
 
 def check_nso(chars: List[dict]):
     """
-    Check if an outfit is NSO. Execute the callback if true.
-    The callable should accept the list of characters as its argument.
-    Returns the faction of the outfit.
+    Check if an outfit is NSO.
+    Returns the faction of the outfit, or None if it's NSO.
     """
-    def check_nso_inner(callback: Callable[[List[dict]], Any]):
-        first_5_chars = get_n(5)(chars)
-        first_5_factions = list(map_curried(faction_from_char)(first_5_chars))
-        outfit_faction = not_nso_outfit(first_5_factions)
-        if not outfit_faction:
-            callback(chars)
-        return outfit_faction
-    return check_nso_inner
+    first_5_chars = get_n(5)(chars)
+    first_5_factions = list(map_curried(faction_from_char)(first_5_chars))
+    outfit_faction = not_nso_outfit(first_5_factions)
+    return outfit_faction
 
 
 def clean_chars(outfit_faction: Faction):
@@ -288,11 +283,6 @@ def clean_chars(outfit_faction: Faction):
 
 
 async def main(outfit_id: int = DTWM_ID):
-    def handle_nso(chars: List[dict]):
-        # TODO: handle NSO outfit
-        print("NSO outfit. Exiting...")
-        return
-
     async with Client(service_id=API_KEY) as client:
         # Fetch the outfit
         # Generators are consumed upon usage, so I need a list
@@ -300,9 +290,9 @@ async def main(outfit_id: int = DTWM_ID):
         ids = chars_to_ids(chars)  # negligible
 
         # Check that it's not an NSO outfit
-        outfit_faction = check_nso(chars)(handle_nso)  # negligible
+        outfit_faction = check_nso(chars)  # negligible
         if not outfit_faction:
-            return
+            return "NSOERROR"
 
         # Conform NSOs with the faction of the outfit
         cleaned_chars = clean_chars(outfit_faction)(chars)  # negligible
@@ -314,6 +304,8 @@ async def main(outfit_id: int = DTWM_ID):
         table = build_tks_table(cleaned_chars)(
             teamkills_per_member)  # negligible
         print(table)
+        return table
 
 
-asyncio.get_event_loop().run_until_complete(with_timing(main)())
+if __name__ == "__main__":
+    asyncio.get_event_loop().run_until_complete(with_timing(main)())
