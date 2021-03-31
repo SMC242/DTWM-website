@@ -60,11 +60,11 @@ def get_outfit_chars(outfit_id: int):
     def char_from_member(member):
         return member["character_id_join_character"]
 
-    async def get_kills_per_char_inner(client: Client) -> List[dict]:
+    async def get_outfit_chars_inner(client: Client) -> List[dict]:
         query = await get_characters_query(outfit_id)
         result = await client.request(query)
         return map_curried(char_from_member)(result["outfit_member_list"])
-    return get_kills_per_char_inner
+    return get_outfit_chars_inner
 
 
 def chars_to_ids(chars: List[dict]) -> List[int]:
@@ -85,7 +85,7 @@ def kill_event_query(limit: int = 500):
 def do_kill_event_query(client):
     """Get the kill events for a character"""
     async def do_total_kills_query_inner(char_id: int):
-        result = await client.request(kill_event_query(char_id)(250))
+        result = await client.request(kill_event_query(250)(char_id))
         return result["characters_event_list"]
     return do_total_kills_query_inner
 
@@ -104,11 +104,13 @@ def null_char(id: int):
     }
 
 
-def with_show(fields: List[str]):
+def with_show(fields: Optional[List[str]] = None):
     """Add a filter for the fields sent back from the query."""
     def with_show_inner(query: Query) -> Query:
-        for field in fields:
-            query.show(field)
+        if not fields:
+            return query
+        show_string = ",".join(fields)
+        query.show(show_string)
         return query
     return with_show_inner
 
@@ -117,7 +119,7 @@ def find_char(chars: List[dict]):
     """Find a character by ID within a list of characters."""
     def find_char_inner(id: int) -> dict:
         for char in chars:
-            if char["character_id"] == id:
+            if int(char["character_id"]) == id:
                 return char
         return null_char(id)
     return find_char_inner
@@ -132,7 +134,7 @@ def validate_char_result(chars: List[dict]):
 
 def _query_chars(client: Client):
     """Get characters from the API."""
-    def query_chars_inner(fields: List[str]):
+    def query_chars_inner(fields: Optional[List[str]] = None):
         async def query_chars_inner2(ids: List[int]):
             query = with_show(fields)(character_query(ids))
             result = await client.request(query)
@@ -164,7 +166,7 @@ def kills_to_factions(client: Client):
     async def kills_to_factions_inner(kill_events: List[dict]) -> Faction:
         ids: List[int] = list(
             map(lambda e: int(e["character_id"]), kill_events))
-        chars = await get_chars_batched(client)(["faction_id"])(ids)
+        chars = await get_chars_batched(client)(["faction_id", "character_id"])(ids)
         return list(map_curried(faction_from_char)(chars))
     return kills_to_factions_inner
 
@@ -181,14 +183,14 @@ def is_tk(char_faction: Faction):
     return is_tk_inner
 
 
-def count_tks(char_faction: Faction) -> Callable[[List[dict]], List[int]]:
+def count_tks(char_faction: Faction) -> Callable[[List[Faction]], List[int]]:
     """Get a function to count the number of teamkills from a list of kill events."""
     def count_truthy(acc: int, value: Any):
         return acc + 1 if value else acc
 
     return pipe(
-        map_curried(is_tk(char_faction)),
-        lambda tks: reduce(count_truthy, tks, 0)
+        [map_curried(is_tk(char_faction)),
+         lambda tks: reduce(count_truthy, tks, 0)]
     )
 
 
@@ -198,9 +200,8 @@ def teamkills(client: Client):
             do_kill_event_query(client),
             remove_suicides,
             # all the time is spent here
-            kills_to_factions,
-            map_curried(is_tk(char_faction)),
-            count_tks,
+            kills_to_factions(client),
+            count_tks(char_faction),
         ))
         return teamkills_inner_func
     return teamkills_inner
@@ -295,7 +296,7 @@ async def main(outfit_id: int = DTWM_ID):
     async with Client(service_id=API_KEY) as client:
         # Fetch the outfit
         # Generators are consumed upon usage, so I need a list
-        chars = list(await get_chars(outfit_id)(client))  # 0.8 seconds
+        chars = list(await get_outfit_chars(outfit_id)(client))  # 0.8 seconds
         ids = chars_to_ids(chars)  # negligible
 
         # Check that it's not an NSO outfit
@@ -307,9 +308,9 @@ async def main(outfit_id: int = DTWM_ID):
         cleaned_chars = clean_chars(outfit_faction)(chars)  # negligible
 
         # build table
-        # get_tks_with_progress = with_debug(teamkills(client)(outfit_faction))
+        get_tks_with_progress = with_debug(teamkills(client)(outfit_faction))
         # 35.9 seconds
-        teamkills_per_member = await execute_many_async(teamkills(client)(outfit_faction))(ids)
+        teamkills_per_member = await execute_many_async(get_tks_with_progress)(ids)
         table = build_tks_table(cleaned_chars)(
             teamkills_per_member)  # negligible
         print(table)
