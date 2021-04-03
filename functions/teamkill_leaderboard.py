@@ -163,11 +163,12 @@ def faction_from_char(char: dict) -> Faction:
 
 def kills_to_factions(client: Client):
     """Get the faction of the person killed in the event."""
-    async def kills_to_factions_inner(kill_events: List[dict]) -> Faction:
+    async def kills_to_factions_inner(kill_events: List[dict]) -> List[Faction]:
         ids: List[int] = list(
             map(lambda e: int(e["character_id"]), kill_events))
         chars = await get_chars_batched(client)(["faction_id", "character_id"])(ids)
-        return list(map_curried(faction_from_char)(chars))
+        factions: Iterable[Faction] = map_curried(faction_from_char)(chars)
+        return list(factions)
     return kills_to_factions_inner
 
 
