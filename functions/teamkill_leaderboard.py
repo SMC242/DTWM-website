@@ -40,6 +40,17 @@ def query_factory(collection: str):
     return query_factory_inner
 
 
+def with_show(fields: Optional[List[str]] = None):
+    """Add a filter for the fields sent back from the query."""
+    def with_show_inner(query: Query) -> Query:
+        if not fields:
+            return query
+        show_string = ",".join(fields)
+        query.show(show_string)
+        return query
+    return with_show_inner
+
+
 def query_outfit(outfit_id: int):
     """Build an API query for an outfit by ID."""
     return query_factory("outfit_member")(outfit_id=outfit_id)()
@@ -51,7 +62,7 @@ def with_character_query(query: Query):
     return query
 
 
-get_characters_query = pipe_async(
+get_characters_query = pipe(
     (query_outfit, with_character_query))
 
 
@@ -61,7 +72,7 @@ def get_outfit_chars(outfit_id: int):
         return member["character_id_join_character"]
 
     async def get_outfit_chars_inner(client: Client) -> List[dict]:
-        query = await get_characters_query(outfit_id)
+        query = get_characters_query(outfit_id)
         result = await client.request(query)
         return map_curried(char_from_member)(result["outfit_member_list"])
     return get_outfit_chars_inner
@@ -70,24 +81,6 @@ def get_outfit_chars(outfit_id: int):
 def chars_to_ids(chars: List[dict]) -> List[int]:
     """Convert a list of characters to their IDs."""
     return [int(c["character_id"]) for c in chars]
-
-
-def kill_event_query(limit: int = 500):
-    """Build an API query for the kill events of a player."""
-    def kill_event_inner(char_id: int):
-        query = query_factory("characters_event")(
-            type="KILL", character_id=char_id)()
-        query.limit(limit)
-        return query
-    return kill_event_inner
-
-
-def do_kill_event_query(client):
-    """Get the kill events for a character"""
-    async def do_total_kills_query_inner(char_id: int):
-        result = await client.request(kill_event_query(250)(char_id))
-        return result["characters_event_list"]
-    return do_total_kills_query_inner
 
 
 def character_query(ids: List[int]) -> Query:
@@ -102,17 +95,6 @@ def null_char(id: int):
                 "faction_id": str(Faction.NSO.value),
                 "character_id": id,
     }
-
-
-def with_show(fields: Optional[List[str]] = None):
-    """Add a filter for the fields sent back from the query."""
-    def with_show_inner(query: Query) -> Query:
-        if not fields:
-            return query
-        show_string = ",".join(fields)
-        query.show(show_string)
-        return query
-    return with_show_inner
 
 
 def find_char(chars: List[dict]):
@@ -156,18 +138,65 @@ def get_chars_batched(client: Client):
     return get_chars_inner
 
 
+def char_to_name(char: dict) -> str:
+    """Get the name of a character."""
+    return get_keys(["name", "first"])(char)
+
+
 def faction_from_char(char: dict) -> Faction:
     """Get the faction of a character"""
     return Faction(int(char["faction_id"]))
 
 
+def is_nso(faction: Faction) -> bool:
+    return faction == Faction.NSO
+
+
+def find_first_non_nso(factions: List[Faction]) -> Faction:
+    for f in factions:
+        if not is_nso(f):
+            return f
+    raise ValueError(f"All {len(factions)} players were NSO")
+
+
+def not_nso_outfit(factions: List[Faction]) -> Optional[Faction]:
+    """
+    Returns a non-NSO faction if the outfit has any.
+    Returns None if no non-NSOs were found.
+    """
+    try:
+        # Assume that if the first 5 characters are NSO, all of them are
+        return find_first_non_nso(factions[:5])
+    except ValueError:
+        return None
+
+
+def kill_event_query(limit: int = 500):
+    """Build an API query for the kill events of a player."""
+    def kill_event_inner(char_id: int):
+        query = query_factory("characters_event")(
+            type="KILL", character_id=char_id)()
+        query.limit(limit)
+        return query
+    return kill_event_inner
+
+
+def do_kill_event_query(client):
+    """Get the kill events for a character"""
+    async def do_total_kills_query_inner(char_id: int):
+        result = await client.request(kill_event_query(250)(char_id))
+        return result["characters_event_list"]
+    return do_total_kills_query_inner
+
+
 def kills_to_factions(client: Client):
     """Get the faction of the person killed in the event."""
-    async def kills_to_factions_inner(kill_events: List[dict]) -> Faction:
+    async def kills_to_factions_inner(kill_events: List[dict]) -> List[Faction]:
         ids: List[int] = list(
             map(lambda e: int(e["character_id"]), kill_events))
         chars = await get_chars_batched(client)(["faction_id", "character_id"])(ids)
-        return list(map_curried(faction_from_char)(chars))
+        factions: Iterable[Faction] = map_curried(faction_from_char)(chars)
+        return list(factions)
     return kills_to_factions_inner
 
 
@@ -210,11 +239,6 @@ def teamkills(client: Client):
 TKRecord = Tuple[dict, int]  # a record of a character and their TKs
 
 
-def char_to_name(char: dict) -> str:
-    """Get the name of a character."""
-    return get_keys(["name", "first"])(char)
-
-
 def build_tks_table(chars: List[dict]):
     """
     Transform characters and their TKs into a list of records.
@@ -231,29 +255,6 @@ def build_tks_table(chars: List[dict]):
         records: Iterable[TKRecord] = zip(names, tks)
         return sorted(records, key=sort_by_tk)
     return build_tks_table_inner
-
-
-def is_nso(faction: Faction) -> bool:
-    return faction == Faction.NSO
-
-
-def find_first_non_nso(factions: List[Faction]) -> Faction:
-    for f in factions:
-        if not is_nso(f):
-            return f
-    raise ValueError(f"All {len(factions)} players were NSO")
-
-
-def not_nso_outfit(factions: List[Faction]) -> Optional[Faction]:
-    """
-    Returns a non-NSO faction if the outfit has any.
-    Returns None if no non-NSOs were found.
-    """
-    try:
-        # Assume that if the first 5 characters are NSO, all of them are
-        return find_first_non_nso(factions[:5])
-    except ValueError:
-        return None
 
 
 def convert_nso(outfit_faction: Faction):
