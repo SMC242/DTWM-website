@@ -51,7 +51,7 @@ def with_character_query(query: Query):
     return query
 
 
-get_characters_query = pipe_async(
+get_characters_query = pipe(
     (query_outfit, with_character_query))
 
 
@@ -61,7 +61,7 @@ def get_outfit_chars(outfit_id: int):
         return member["character_id_join_character"]
 
     async def get_outfit_chars_inner(client: Client) -> List[dict]:
-        query = await get_characters_query(outfit_id)
+        query = get_characters_query(outfit_id)
         result = await client.request(query)
         return map_curried(char_from_member)(result["outfit_member_list"])
     return get_outfit_chars_inner
