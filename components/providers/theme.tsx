@@ -30,7 +30,6 @@ const colours = {
 
 const theme_config: ThemeConfig = {
   initialColorMode: "dark",
-  useSystemColorMode: true,
 };
 
 export const Theme = extendTheme({
