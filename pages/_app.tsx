@@ -1,7 +1,7 @@
 import "../styles/globals.css";
 import { ChakraProvider } from "@chakra-ui/react";
 import React from "react";
-import { AppProps } from "next/app";
+import AppProps from "next/app";
 import Head from "next/head";
 import Skull from "../images/skull/DTWMSkull.big.png";
 
