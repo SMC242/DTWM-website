@@ -3,8 +3,7 @@ import { mode } from "@chakra-ui/theme-tools";
 
 const Button: ComponentStyleConfig = {
   baseStyle: {
-    background: "initial", // <---- this resets the background to whatever normal value it has
-    bgGradient: "linear(to-b, pink.500, purple.500)",
+    margin: "0.5",
   },
 };
 export default Button;
