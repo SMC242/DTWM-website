@@ -1,5 +1,6 @@
 import React from "react";
-import { Box, Button, useColorMode, Divider, Text } from "@chakra-ui/react";
+import { Box, useColorMode, Divider, Text } from "@chakra-ui/react";
+import { MainButton } from "./inputs/btn";
 
 const template = (
   first: number,
@@ -15,11 +16,8 @@ const ThemeTest = () => {
   const { colorMode, toggleColorMode } = useColorMode();
   return (
     <Box mx="5">
-      <Button colorScheme="yellow">UmU</Button>
-      <Button>AwA</Button>
-      <Button colorScheme="pink" onClick={toggleColorMode}>
-        Switch theme. Current mode: {colorMode}
-      </Button>
+      <MainButton colorScheme="yellow">UmU</MainButton>
+      <MainButton>AwA</MainButton>
       <Divider my="5" />
       <Text>Now I have your IP adress mwahahahahahahahahahaha!</Text>
       <Text>It is: {get_ip_address()}</Text>
