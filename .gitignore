@@ -41,3 +41,6 @@ next-env.d.ts
 *_TOKEN.*
 *_KEY.*
 __pycache__/
+
+# environment files
+.vscode/
