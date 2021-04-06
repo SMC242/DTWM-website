@@ -16,7 +16,7 @@ const ThemeTest = () => {
   return (
     <Box mx="5">
       <Button colorScheme="yellow">UmU</Button>
-      <Button colorScheme="blue">AwA</Button>
+      <Button>AwA</Button>
       <Button colorScheme="pink" onClick={toggleColorMode}>
         Switch theme. Current mode: {colorMode}
       </Button>
