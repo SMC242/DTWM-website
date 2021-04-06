@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button, useColorMode, Divider } from "@chakra-ui/react";
+import { Box, Button, useColorMode, Divider, Text } from "@chakra-ui/react";
 
 const template = (
   first: number,
@@ -20,12 +20,15 @@ const ThemeTest = () => {
         Switch theme. Current mode: {colorMode}
       </Button>
       <Divider my="5" />
-      Now I have your IP adress mwahahahahahahahahahaha
-      <br />
-      It is: {ip_address}
-      <br />
+      <Text>Now I have your IP adress mwahahahahahahahahahaha!</Text>
+      <Text>It is: {ip_address}</Text>
       <Divider my="5" />
-      <small>I haven't actually grabbed your IP :)</small>
+      <Text>
+        <small>I haven't actually grabbed your IP :)</small>
+      </Text>
+      <Text>
+        <small>Refresh the page.</small>
+      </Text>
     </Box>
   );
 };

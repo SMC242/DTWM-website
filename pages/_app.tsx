@@ -2,7 +2,7 @@ import "../styles/globals.css";
 import React, { FC } from "react";
 import type { AppProps } from "next/app";
 import Head from "next/head";
-import { CustomChakraProvider } from "../components/providers/theme";
+import { CustomChakraProvider } from "../theme";
 
 const MyApp: FC<AppProps> = ({ Component, pageProps }) => {
   return (
