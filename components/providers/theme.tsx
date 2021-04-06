@@ -35,7 +35,7 @@ const theme_config: ThemeConfig = {
 
 export const Theme = extendTheme({
   colors: colours,
-  themeConfig: theme_config,
+  config: theme_config,
 });
 
 export const CustomChakraProvider: FC<PropsWithChildren<{}>> = ({

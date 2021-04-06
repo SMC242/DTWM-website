@@ -1,7 +1,7 @@
-import React, { FC } from "react";
+import React from "react";
 import Head from "next/head";
-import Link from "next/link";
 import Image from "next/image";
+import ThemeTest from "../components/theme_test";
 
 const Home = () => (
   <>
@@ -10,6 +10,7 @@ const Home = () => (
     </Head>
     <h3>Welcome to the DTWM website :^)</h3>
     <Image width={200} height={200} src="/images/skull/DTWMSkull.big.png" />
+    <ThemeTest />
   </>
 );
 
