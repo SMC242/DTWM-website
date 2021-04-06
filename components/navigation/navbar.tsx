@@ -6,7 +6,6 @@ import {
   VStack,
   Slide,
   BoxProps,
-  Divider,
 } from "@chakra-ui/react";
 import ModeButton from "../inputs/mode_btn";
 import Link from "next/link";
@@ -37,7 +36,8 @@ const NavItem: FC<NavItemProps> = ({ text, route, width }) => (
 );
 
 export const HNavbar: FC<NavBarProps> = ({ links }) => {
-  const bg = useColorModeValue("yellow.500", "blue.800");
+  const bg = useColorModeValue("yellow.500", "blue.900");
+
   const [revealed, set_revealed] = useState(true);
   // Hide the menu unless at the top or bottom of the page
   const handle_scroll = () => {
