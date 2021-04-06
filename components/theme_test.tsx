@@ -8,7 +8,8 @@ const template = (
   fourth: number
 ): string => `${first}.${second}.${third}.${fourth}`;
 const random = (column: number) => Math.floor(Math.random() * column);
-const ip_address = template(random(100), random(100), random(10), random(10));
+const get_ip_address = () =>
+  template(random(100), random(100), random(10), random(10));
 
 const ThemeTest = () => {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -21,7 +22,7 @@ const ThemeTest = () => {
       </Button>
       <Divider my="5" />
       <Text>Now I have your IP adress mwahahahahahahahahahaha!</Text>
-      <Text>It is: {ip_address}</Text>
+      <Text>It is: {get_ip_address()}</Text>
       <Divider my="5" />
       <Text>
         <small>I haven't actually grabbed your IP :)</small>

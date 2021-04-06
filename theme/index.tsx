@@ -5,15 +5,13 @@ import theme_config from "./config";
 import styles from "./styles";
 
 const overrides: ThemeOverride = {
+  colors: colours,
+  config: theme_config,
   styles,
   components: {},
 };
 
-export const Theme = extendTheme({
-  colors: colours,
-  config: theme_config,
-  overrides,
-});
+export const Theme = extendTheme(overrides);
 
 export const CustomChakraProvider: FC<PropsWithChildren<{}>> = ({
   children,

@@ -1,9 +1,11 @@
+import { mode } from "@chakra-ui/theme-tools";
+
 const styles = {
-  global: {
+  global: (props: object) => ({
     body: {
-      background: "main.blue",
+      bg: mode("gray.50", "blue.800")(props),
     },
-  },
+  }),
 };
 
 export default styles;
