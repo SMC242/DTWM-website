@@ -1,4 +1,4 @@
-import { extendTheme, ChakraProvider } from "@chakra-ui/react";
+import { extendTheme, ChakraProvider, ThemeConfig } from "@chakra-ui/react";
 import React, { FC, PropsWithChildren } from "react";
 
 const colours = {
@@ -10,9 +10,17 @@ const colours = {
   },
 };
 
+const theme_config: ThemeConfig = {
+  initialColorMode: "dark",
+  useSystemColorMode: true,
+};
+
 const portal_z_index = 20;
 
-export const Theme = extendTheme({ colors: colours });
+export const Theme = extendTheme({
+  colors: colours,
+  themeConfig: theme_config,
+});
 
 export const CustomChakraProvider: FC<PropsWithChildren<{}>> = ({
   children,
