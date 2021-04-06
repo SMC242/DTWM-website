@@ -2,11 +2,29 @@ import { extendTheme, ChakraProvider, ThemeConfig } from "@chakra-ui/react";
 import React, { FC, PropsWithChildren } from "react";
 
 const colours = {
-  main: {
-    blue: "#012168",
-    blue_dark: "#000042",
-    highlight_yellow: "#fde40",
-    highlight_yellow_dark: "#d47700",
+  blue: {
+    "50": "#E5E5FF",
+    "100": "#B8B8FF",
+    "200": "#8A8AFF",
+    "300": "#5C5CFF",
+    "400": "#2E2EFF",
+    "500": "#0000FF",
+    "600": "#0000CC",
+    "700": "#000099",
+    "800": "#000066",
+    "900": "#000033",
+  },
+  yellow: {
+    "50": "#FFFCE5",
+    "100": "#FFF8B8",
+    "200": "#FFF38A",
+    "300": "#FFEF5C",
+    "400": "#FFEA2E",
+    "500": "#FFE600",
+    "600": "#CCB800",
+    "700": "#998A00",
+    "800": "#665C00",
+    "900": "#332E00",
   },
 };
 
