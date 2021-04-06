@@ -33,8 +33,6 @@ const theme_config: ThemeConfig = {
   useSystemColorMode: true,
 };
 
-const portal_z_index = 20;
-
 export const Theme = extendTheme({
   colors: colours,
   themeConfig: theme_config,
@@ -42,8 +40,4 @@ export const Theme = extendTheme({
 
 export const CustomChakraProvider: FC<PropsWithChildren<{}>> = ({
   children,
-}) => (
-  <ChakraProvider portalZIndex={portal_z_index} theme={Theme}>
-    {children}
-  </ChakraProvider>
-);
+}) => <ChakraProvider theme={Theme}>{children}</ChakraProvider>;
