@@ -3,8 +3,28 @@ import React, { FC } from "react";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { CustomChakraProvider } from "../theme";
+import { HNavbar } from "../components/navigation/navbar";
 
 const MyApp: FC<AppProps> = ({ Component, pageProps }) => {
+  const links = [
+    {
+      text: "Home",
+      route: "/",
+    },
+    {
+      text: "Info",
+      route: "/info",
+    },
+    {
+      text: "Discord",
+      route: "https://joindtwm.vercel.app/join",
+    },
+    {
+      text: "Training Docs",
+      route: "/training/training-home",
+    },
+  ];
+
   return (
     <CustomChakraProvider>
       <Head>
@@ -50,6 +70,7 @@ const MyApp: FC<AppProps> = ({ Component, pageProps }) => {
           key="ogimage"
         />
       </Head>
+      <HNavbar links={links} />
       <Component {...pageProps} />
     </CustomChakraProvider>
   );
