@@ -1,8 +1,12 @@
 import { ComponentStyleConfig } from "@chakra-ui/react";
+import { mode } from "@chakra-ui/theme-tools";
 
-const button_styles: ComponentStyleConfig = {
-  baseStyle: {
-    bgGradient: "linear(to-r, pink.500, purple.500)",
-  },
+const Button: ComponentStyleConfig = {
+  baseStyle: (props: object) => ({
+    bgGradient: mode(
+      "linear(to-b, pink.500, purple.500)",
+      "linear(to-b, green.200, red.300)"
+    )(props),
+  }),
 };
-export default button_styles;
+export default Button;
