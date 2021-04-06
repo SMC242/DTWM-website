@@ -1,13 +1,12 @@
 import "../styles/globals.css";
-import { ChakraProvider } from "@chakra-ui/react";
-import React from "react";
-import AppProps from "next/app";
+import React, { FC } from "react";
+import type { AppProps } from "next/app";
 import Head from "next/head";
-import Skull from "../images/skull/DTWMSkull.big.png";
+import { CustomChakraProvider } from "../components/providers/theme";
 
-function MyApp({ Component, pageProps }: AppProps) {
+const MyApp: FC<AppProps> = ({ Component, pageProps }) => {
   return (
-    <ChakraProvider>
+    <CustomChakraProvider>
       <Head>
         {/* favicon stuff */}
         <link
@@ -52,8 +51,8 @@ function MyApp({ Component, pageProps }: AppProps) {
         />
       </Head>
       <Component {...pageProps} />
-    </ChakraProvider>
+    </CustomChakraProvider>
   );
-}
+};
 
 export default MyApp;
