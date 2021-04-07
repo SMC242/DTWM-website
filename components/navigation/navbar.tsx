@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from "react";
+import React, { FC, useState } from "react";
 import {
   Box,
   useColorModeValue,
@@ -9,8 +9,8 @@ import {
 } from "@chakra-ui/react";
 import ModeButton from "../inputs/mode_btn";
 import Link from "next/link";
+import with_scroll_cbs from "../wrappers/scroll";
 
-type ScrollEvent = { scrollX: number; scrollY: number };
 export type LinkType = { text: string; route: string };
 
 export interface NavBarProps {
@@ -35,26 +35,11 @@ const NavItem: FC<NavItemProps> = ({ text, route, width }) => (
   </NavItemBox>
 );
 
-export const HNavbar: FC<NavBarProps> = ({ links }) => {
+const Inner: FC<NavBarProps & { revealed: boolean }> = ({
+  links,
+  revealed,
+}) => {
   const bg = useColorModeValue("yellow.500", "blue.900");
-
-  const [revealed, set_revealed] = useState(true);
-  // Hide the menu unless at the top or bottom of the page
-  const handle_scroll = () => {
-    // How many pixels around the top and bottom to show the navbar for
-    const TOLERANCE = 100;
-    const current_position = window.pageYOffset;
-    const max_position = document.body.scrollHeight - window.innerHeight;
-    const below_top = current_position > TOLERANCE;
-    const at_bottom = current_position >= max_position - TOLERANCE;
-    if (below_top && !at_bottom) return set_revealed(false);
-    set_revealed(true);
-  };
-  useEffect(() => {
-    document.addEventListener("scroll", handle_scroll);
-    return () => document.removeEventListener("scroll", handle_scroll);
-  });
-
   return (
     <Box marginBottom="3rem">
       <Slide direction="top" in={revealed}>
@@ -71,4 +56,15 @@ export const HNavbar: FC<NavBarProps> = ({ links }) => {
       </Slide>
     </Box>
   );
+};
+
+export const HNavbar: FC<NavBarProps> = (props) => {
+  const [revealed, set_revealed] = useState(true);
+  const Wrapped = with_scroll_cbs(
+    Inner,
+    () => set_revealed(true),
+    () => set_revealed(false)
+  );
+
+  return <Wrapped revealed={revealed} {...props} />;
 };
