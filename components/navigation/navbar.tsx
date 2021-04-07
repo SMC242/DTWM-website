@@ -6,6 +6,7 @@ import {
   VStack,
   Slide,
   BoxProps,
+  Grid,
 } from "@chakra-ui/react";
 import ModeButton from "../inputs/mode_btn";
 import Link from "next/link";
@@ -44,14 +45,16 @@ const Inner: FC<NavBarProps & { revealed: boolean }> = ({
     <Box marginBottom="3rem">
       <Slide direction="top" in={revealed}>
         <Box bg={bg} w="100%" transition="height">
-          <HStack>
-            {links.map((l, i) => (
-              <NavItem {...l} key={i} />
-            ))}
-            <NavItemBox>
+          <Grid templateColumns="1fr 1fr" templateArea="links settings">
+            <HStack gridRow={1}>
+              {links.map((l, i) => (
+                <NavItem {...l} key={i} />
+              ))}
+            </HStack>
+            <NavItemBox gridArea="settings" gridRow={1}>
               <ModeButton />
             </NavItemBox>
-          </HStack>
+          </Grid>
         </Box>
       </Slide>
     </Box>
