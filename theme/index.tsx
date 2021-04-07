@@ -6,13 +6,14 @@ import styles from "./styles";
 import { Button, MainButton } from "./components/button";
 import Heading from "./components/heading";
 import font_theme from "./fonts";
+import { QuoteBlock } from "./components/quote";
 
 const overrides: ThemeOverride = {
   colors: colours,
   config: theme_config,
   styles,
   ...font_theme,
-  components: { Button, MainButton, Heading },
+  components: { Button, MainButton, Heading, QuoteBlock },
 };
 
 export const Theme = extendTheme(overrides);

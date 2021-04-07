@@ -1,18 +1,19 @@
-import React, { FC, PropsWithChildren } from "react";
-import { Text, useStyleConfig, TextProps, HStack } from "@chakra-ui/react";
+import React, { FC, PropsWithChildren, CSSProperties } from "react";
+import {
+  Text,
+  useStyleConfig,
+  TextProps,
+  HStack,
+  chakra,
+} from "@chakra-ui/react";
 
 export interface QuoteProps extends TextProps {}
 
-interface QuoteRectangleProps {
-  height?: number | string;
-  width: number | string;
-}
-
-const QuoteRectangle: FC<QuoteRectangleProps> = ({ height, width }) => (
-  <svg viewBox="0 0 2 10" width={width} height={height}>
-    <rect width="20%" height="100%" style={{ fill: "#FFFFFF" }}></rect>
-  </svg>
-);
+const BlockQuote = chakra("blockquote", {
+  baseStyle: {
+    borderLeft: "10px solid #ccc",
+  },
+});
 
 const Quote: FC<PropsWithChildren<QuoteProps>> = ({
   size,
@@ -20,13 +21,15 @@ const Quote: FC<PropsWithChildren<QuoteProps>> = ({
   children,
   ...props
 }) => {
-  const styles = useStyleConfig("Quote", { size, variant });
+  const text_styles = useStyleConfig("QuoteText", { size, variant });
+  const block_styles = useStyleConfig("QuoteBlock", { size, variant });
   return (
     <HStack>
-      <QuoteRectangle width="1em" height="100%" />
-      <Text sx={styles} {...props}>
-        {children}
-      </Text>
+      <BlockQuote sx={block_styles}>
+        <Text sx={text_styles} {...props}>
+          {children}
+        </Text>
+      </BlockQuote>
     </HStack>
   );
 };
