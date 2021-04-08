@@ -1,10 +1,19 @@
 import React from "react";
+import { Text, Heading } from "@chakra-ui/react";
+import Article from "../components/templates/article";
+import Quote from "../components/containers/quote";
 
 const Info = () => (
-  <>
-    <h1>Info page</h1>
-    <small>UmU</small>
-  </>
+  <Article>
+    <Heading>Who are DTWM?</Heading>
+    <Quote>
+      Some call us weebs. Others call us bronies. Many call us teamkillers.
+      Ajfejkewgbjkewjkgewhghjggjeggejjgehejgswlgejlswkgjklsssssssssssssssss
+      Please calklgjkejkfhee an ambuleance ben teamkilledgj me again
+    </Quote>
+    <Text>We are a trainingfit for MUMS</Text>
+    <Text>AwA please work</Text>
+  </Article>
 );
 
 export default Info;
