@@ -1,4 +1,4 @@
-import React, { FC, PropsWithChildren, CSSProperties } from "react";
+import React, { FC, PropsWithChildren } from "react";
 import {
   Text,
   useStyleConfig,
@@ -9,11 +9,7 @@ import {
 
 export interface QuoteProps extends TextProps {}
 
-const BlockQuote = chakra("blockquote", {
-  baseStyle: {
-    borderLeft: "10px solid #ccc",
-  },
-});
+const BlockQuote = chakra("blockquote");
 
 const Quote: FC<PropsWithChildren<QuoteProps>> = ({
   size,
@@ -21,14 +17,12 @@ const Quote: FC<PropsWithChildren<QuoteProps>> = ({
   children,
   ...props
 }) => {
-  const text_styles = useStyleConfig("QuoteText", { size, variant });
   const block_styles = useStyleConfig("QuoteBlock", { size, variant });
+
   return (
     <HStack>
       <BlockQuote sx={block_styles}>
-        <Text sx={text_styles} {...props}>
-          {children}
-        </Text>
+        <Text {...props}>{children}</Text>
       </BlockQuote>
     </HStack>
   );
