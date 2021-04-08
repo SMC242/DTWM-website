@@ -42,7 +42,7 @@ const Inner: FC<NavBarProps & { revealed: boolean }> = ({
 }) => {
   const bg = useColorModeValue("yellow.500", "blue.900");
   return (
-    <Box marginBottom="3rem">
+    <Box marginBottom="4rem">
       <Slide direction="top" in={revealed}>
         <Box bg={bg} w="100%" transition="height">
           <Grid templateColumns="repeat(2, 2fr)" gap={300} alignItems="center">
