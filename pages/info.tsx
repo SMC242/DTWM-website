@@ -9,6 +9,7 @@ const Info = () => (
     <Quote>
       Some call us weebs. Others call us bronies. Many call us teamkillers.
       Ajfejkewgbjkewjkgewhghjggjeggejjgehejgswlgejlswkgjklsssssssssssssssss
+      Please calklgjkejkfhee an ambuleance ben teamkilledgj me again
     </Quote>
     <Text>We are a trainingfit for MUMS</Text>
     <Text>AwA please work</Text>
