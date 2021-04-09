@@ -16,21 +16,19 @@ const Artcle: FC<PropsWithChildren<ArticleProps>> = ({
   children,
   size,
   variant,
-  LeftSidebar,
-  RightSidebar,
+  LeftSidebar = <Box />,
+  RightSidebar = <Box />,
   ...props
 }) => {
   const article_style = useStyleConfig("Article", { size, variant });
-  const Left = LeftSidebar || <Box />;
-  const Right = RightSidebar || <Box />;
 
   return (
     <Grid templateColumns="1fr 4fr 1fr" gap={0}>
-      {Left}
+      {LeftSidebar}
       <Container sx={article_style}>
         <Container {...props}>{children}</Container>
       </Container>
-      {Right}
+      {RightSidebar}
     </Grid>
   );
 };
