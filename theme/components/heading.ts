@@ -2,7 +2,8 @@ import { ComponentStyleConfig } from "@chakra-ui/react";
 
 const Heading: ComponentStyleConfig = {
   baseStyle: {
-    marginBottom: "1rem",
+    marginTop: "1rem",
+    marginBottom: ".5rem",
   },
 };
 
