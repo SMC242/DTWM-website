@@ -33,10 +33,10 @@ const Info = () => (
     <Heading>How is DTWM's community managed?</Heading>
     <Text>
       The hierarchy is kept fairly flat. Members get to vote on any important
-      decisions and may repeal any decision made by leaders. The smaller
-      decisions are handled by a council of leaders. All members are encouraged
-      to drop into Council meetings and have an equal say with leaders. ANVILs
-      and facility modules are available to long-standing members.
+      decisions and may repeal any decision. The smaller decisions are handled
+      by a council of leaders. All members are encouraged to drop into Council
+      meetings and have an equal say with leaders. ANVILs and facility modules
+      are available to long-standing members.
     </Text>
     <Heading>Schedule</Heading>
     <Text>
@@ -48,7 +48,13 @@ const Info = () => (
     </Text>
     <Heading>What is expected from a DTWM member?</Heading>
     <UnorderedList>
-      <ListItem></ListItem>
+      <ListItem>
+        Initiative and speed are valuable skills. You'll learn them as you play
+      </ListItem>
+      <ListItem>
+        Join the Discord voice channel if you're in our ops squad
+      </ListItem>
+      <ListItem>Respect battle comms</ListItem>
       <ListItem>
         Interact with the community by coming to ops at least once a month or
         chatting in Discord or you will be kicked
@@ -64,7 +70,7 @@ const Info = () => (
       you can know when we're playing.
     </Text>
     <br />
-    <Text fontSize="sm">
+    <Text>
       You can try out our ops before joining. Ask for the Ogryn Auxilliary role.
     </Text>
   </Article>
