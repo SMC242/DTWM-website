@@ -7,6 +7,7 @@ import {
   Slide,
   BoxProps,
   Grid,
+  useStyleConfig,
 } from "@chakra-ui/react";
 import ModeButton from "../inputs/mode_btn";
 import Link from "next/link";
@@ -18,18 +19,19 @@ export interface NavBarProps {
   links: Array<LinkType>;
 }
 
-interface NavItemProps extends LinkType {
-  width?: string;
-}
+interface NavItemProps extends LinkType {}
 
-const NavItemBox: FC<BoxProps> = (props) => (
-  <Box h="100%" d="inline" mx="2" {...props}>
-    {props.children}
-  </Box>
-);
+const NavItemBox: FC<BoxProps> = (props) => {
+  const styles = useStyleConfig("NavItemBox");
+  return (
+    <Box sx={styles} {...props}>
+      {props.children}
+    </Box>
+  );
+};
 
-const NavItem: FC<NavItemProps> = ({ text, route, width }) => (
-  <NavItemBox w={width}>
+const NavItem: FC<NavItemProps> = ({ text, route }) => (
+  <NavItemBox>
     <Link href={route} passHref>
       <a>{text}</a>
     </Link>
@@ -40,13 +42,16 @@ const Inner: FC<NavBarProps & { revealed: boolean }> = ({
   links,
   revealed,
 }) => {
-  const bg = useColorModeValue("yellow.500", "blue.900");
   return (
-    <Box marginBottom="4rem">
+    <Box sx={useStyleConfig("NavbarContainer")}>
       <Slide direction="top" in={revealed}>
-        <Box bg={bg} w="100%" transition="height">
-          <Grid templateColumns="repeat(2, 2fr)" gap={300} alignItems="center">
-            <HStack>
+        <Box sx={useStyleConfig("NavbarBG")}>
+          <Grid
+            templateColumns="repeat(2, 2fr)"
+            gap={300}
+            sx={useStyleConfig("NavbarGrid")}
+          >
+            <HStack sx={useStyleConfig("NavbarStack")}>
               {links.map((l, i) => (
                 <NavItem {...l} key={i} />
               ))}

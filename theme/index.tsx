@@ -8,13 +8,21 @@ import Heading from "./components/heading";
 import font_theme from "./fonts";
 import { QuoteBlock } from "./components/quote";
 import Article from "./components/article";
+import NavbarStyles from "./components/navbar";
 
 const overrides: ThemeOverride = {
   colors: colours,
   config: theme_config,
   styles,
   ...font_theme,
-  components: { Button, MainButton, Heading, QuoteBlock, Article },
+  components: {
+    Button,
+    MainButton,
+    Heading,
+    QuoteBlock,
+    Article,
+    ...NavbarStyles,
+  },
 };
 
 export const Theme = extendTheme(overrides);
