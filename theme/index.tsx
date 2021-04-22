@@ -9,12 +9,14 @@ import font_theme from "./fonts";
 import { QuoteBlock } from "./components/quote";
 import Article from "./components/article";
 import NavbarStyles from "./components/navbar";
+import layerStyles from "./layers";
 
 const overrides: ThemeOverride = {
   colors: colours,
   config: theme_config,
   styles,
   ...font_theme,
+  layerStyles,
   components: {
     Button,
     MainButton,
