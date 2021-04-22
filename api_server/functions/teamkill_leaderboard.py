@@ -131,7 +131,9 @@ def _query_chars(client: Client):
     """Get characters from the API."""
     def query_chars_inner(fields: Optional[List[str]] = None):
         async def query_chars_inner2(ids: List[int]):
-            query = with_show(fields)(character_query(ids))
+            # TODO: batch into 100 players/query
+            char_query = character_query(ids)
+            query = with_show(fields)(char_query)
             result = await client.request(query)
             chars = result["character_list"]
             return validate_char_result(chars)(ids)
@@ -330,4 +332,7 @@ async def main(outfit_id: int = DTWM_ID) -> Coroutine[None, None, TKTable]:
 
 if __name__ == "__main__":
     # asyncio.get_event_loop().run_until_complete(with_timing(main)())
-    asyncio.get_event_loop().run_until_complete(outfit_id_by_tag("DTWM"))
+    async def test():
+        id = await outfit_id_by_tag("bho")
+        res = await main(id)
+    asyncio.get_event_loop().run_until_complete(test())
