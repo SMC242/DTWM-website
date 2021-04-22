@@ -1,10 +1,11 @@
 import asyncio
 from auraxium import Client
-from typing import Tuple, List, Any, Iterable, Optional, Coroutine, Callable
+from auraxium.ps2 import Outfit
+from typing import Tuple, List, Any, Iterable, Optional, Coroutine, Callable, Dict, Union
 from auraxium.census import Query
 from functools import reduce
 from enum import Enum
-from functional_utils import read_file, pipe_async, map_curried, get_keys, with_debug, get_n, update_dict, execute_many_async, with_timing, chunk, pipe, map_async
+from .functional_utils import read_file, pipe_async, map_curried, get_keys, with_debug, get_n, update_dict, execute_many_async, with_timing, chunk, pipe, map_async
 import itertools
 
 # constants
@@ -51,6 +52,17 @@ def with_show(fields: Optional[List[str]] = None):
     return with_show_inner
 
 
+async def outfit_id_by_tag(outfit_tag: str) -> Optional[int]:
+    """Get an outfit's ID from their tag. Case insensitive"""
+
+    lowercase_tag = outfit_tag.lower()
+    async with Client() as client:  # default service ID used to avoid having to pass the main client
+        result = await client.get(Outfit, alias_lower=lowercase_tag)
+    if not result:
+        return None
+    return result.id
+
+
 def query_outfit(outfit_id: int):
     """Build an API query for an outfit by ID."""
     return query_factory("outfit_member")(outfit_id=outfit_id)()
@@ -59,6 +71,7 @@ def query_outfit(outfit_id: int):
 def with_character_query(query: Query):
     """Mix in a join on character."""
     query.create_join("character")
+    query.limit(150)
     return query
 
 
@@ -237,6 +250,7 @@ def teamkills(client: Client):
 
 
 TKRecord = Tuple[dict, int]  # a record of a character and their TKs
+TKTable = List[TKRecord]
 
 
 def build_tks_table(chars: List[dict]):
@@ -248,13 +262,18 @@ def build_tks_table(chars: List[dict]):
     def sort_by_tk(record: TKRecord):
         return record[1]
 
-    def build_tks_table_inner(tks: List[int]):
+    def build_tks_table_inner(tks: List[int]) -> TKTable:
         if len(chars) != len(tks):
             raise ValueError("Uneven length between characters and tks")
         names = map_curried(char_to_name)(chars)
         records: Iterable[TKRecord] = zip(names, tks)
         return sorted(records, key=sort_by_tk)
     return build_tks_table_inner
+
+
+def table_to_dicts(table: TKTable) -> List[dict]:
+    """Transform the tuples to dictionaries."""
+    return list(map(lambda row: {"name": row[0], "tks": row[1]}, table))
 
 
 def convert_nso(outfit_faction: Faction):
@@ -283,7 +302,7 @@ def clean_chars(outfit_faction: Faction):
     return clean_chars_inner
 
 
-async def main(outfit_id: int = DTWM_ID):
+async def main(outfit_id: int = DTWM_ID) -> Coroutine[None, None, TKTable]:
     async with Client(service_id=API_KEY) as client:
         # Fetch the outfit
         # Generators are consumed upon usage, so I need a list
@@ -293,7 +312,7 @@ async def main(outfit_id: int = DTWM_ID):
         # Check that it's not an NSO outfit
         outfit_faction = check_nso(chars)  # negligible
         if not outfit_faction:
-            return "NSOERROR"
+            raise ValueError("NSO outfit")
 
         # Conform NSOs with the faction of the outfit
         cleaned_chars = clean_chars(outfit_faction)(chars)  # negligible
@@ -304,9 +323,11 @@ async def main(outfit_id: int = DTWM_ID):
         teamkills_per_member = await execute_many_async(get_tks_with_progress)(ids)
         table = build_tks_table(cleaned_chars)(
             teamkills_per_member)  # negligible
+        final_form = table_to_dicts(table)
         print(table)
-        return table
+        return final_form
 
 
 if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(with_timing(main)())
+    # asyncio.get_event_loop().run_until_complete(with_timing(main)())
+    asyncio.get_event_loop().run_until_complete(outfit_id_by_tag("DTWM"))
