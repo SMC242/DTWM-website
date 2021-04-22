@@ -18,10 +18,10 @@ const NavbarStyles: Record<string, ComponentStyleConfig> = {
       alignItems: "center",
     },
   },
-  NavbarStack: {
-    baseStyle: {
-      // color: mode("blackAlpha-900", "pink.400"), // for the upcoming dark theme changes
-    },
+  NavbarButton: {
+    baseStyle: (props) => ({
+      color: mode("blackAlpha-900", "pink.300")(props), // for the upcoming dark theme changes
+    }),
   },
   NavItemBox: {
     baseStyle: {

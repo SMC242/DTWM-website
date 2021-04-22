@@ -51,13 +51,13 @@ const Inner: FC<NavBarProps & { revealed: boolean }> = ({
             gap={300}
             sx={useStyleConfig("NavbarGrid")}
           >
-            <HStack sx={useStyleConfig("NavbarStack")}>
+            <HStack>
               {links.map((l, i) => (
                 <NavItem {...l} key={i} />
               ))}
             </HStack>
             <NavItemBox textAlign="right">
-              <ModeButton />
+              <ModeButton sx={useStyleConfig("NavbarButton")} />
             </NavItemBox>
           </Grid>
         </Box>
