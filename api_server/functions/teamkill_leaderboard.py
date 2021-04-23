@@ -69,14 +69,17 @@ def query_outfit(outfit_id: int):
     return query_factory("outfit_member")(outfit_id=outfit_id)()
 
 
-def with_character_query(query: Query):
+def with_character_query(limit: int = 150):
     """Mix in a join on character."""
-    query.create_join("character")
-    return query
+    def with_character_query_inner(query: Query) -> Query:
+        query.create_join("character")
+        query.limit(limit)
+        return query
+    return with_character_query_inner
 
 
 get_characters_query = pipe(
-    (query_outfit, with_character_query))
+    (query_outfit, with_character_query(300)))
 
 
 def get_outfit_chars(outfit_id: int):
