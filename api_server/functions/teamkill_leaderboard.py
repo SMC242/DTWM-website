@@ -5,7 +5,7 @@ from typing import Tuple, List, Any, Iterable, Optional, Coroutine, Callable, Di
 from auraxium.census import Query
 from functools import reduce
 from enum import Enum
-from functional_utils import read_file, pipe_async, map_curried, get_keys, with_debug, get_n, update_dict, execute_many_async, with_timing, chunk, pipe, map_async
+from .functional_utils import read_file, pipe_async, map_curried, get_keys, with_debug, get_n, update_dict, execute_many_async, with_timing, chunk, pipe, map_async
 import itertools
 
 # constants
