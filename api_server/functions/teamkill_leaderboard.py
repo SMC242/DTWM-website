@@ -85,12 +85,15 @@ get_characters_query = pipe(
 def get_outfit_chars(outfit_id: int):
     """Get all the characters of an outfit by its ID."""
     def char_from_member(member):
-        return member["character_id_join_character"]
+        # The join fails sometimes
+        return member.get("character_id_join_character", None)
 
     async def get_outfit_chars_inner(client: Client) -> List[dict]:
         query = get_characters_query(outfit_id)
         result = await client.request(query)
-        return map_curried(char_from_member)(result["outfit_member_list"])
+        chars_unfiltered = map_curried(char_from_member)(
+            result["outfit_member_list"])
+        return filter(lambda char: char is not None, chars_unfiltered)
     return get_outfit_chars_inner
 
 
