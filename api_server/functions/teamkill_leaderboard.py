@@ -5,7 +5,7 @@ from typing import Tuple, List, Any, Iterable, Optional, Coroutine, Callable, Di
 from auraxium.census import Query
 from functools import reduce
 from enum import Enum
-from .functional_utils import read_file, pipe_async, map_curried, get_keys, with_debug, get_n, update_dict, execute_many_async, with_timing, chunk, pipe, map_async
+from functional_utils import read_file, pipe_async, map_curried, get_keys, with_debug, get_n, update_dict, execute_many_async, with_timing, chunk, pipe, map_async
 import itertools
 
 # constants
@@ -56,7 +56,8 @@ async def outfit_id_by_tag(outfit_tag: str) -> Optional[int]:
     """Get an outfit's ID from their tag. Case insensitive"""
 
     lowercase_tag = outfit_tag.lower()
-    async with Client() as client:  # default service ID used to avoid having to pass the main client
+    # default service ID used to avoid having to pass the main client
+    async with Client() as client:
         result = await client.get(Outfit, alias_lower=lowercase_tag)
     if not result:
         return None
@@ -131,7 +132,6 @@ def _query_chars(client: Client):
     """Get characters from the API."""
     def query_chars_inner(fields: Optional[List[str]] = None):
         async def query_chars_inner2(ids: List[int]):
-            # TODO: batch into 100 players/query
             char_query = character_query(ids)
             query = with_show(fields)(char_query)
             result = await client.request(query)
@@ -207,6 +207,8 @@ def do_kill_event_query(client):
 def kills_to_factions(client: Client):
     """Get the faction of the person killed in the event."""
     async def kills_to_factions_inner(kill_events: List[dict]) -> List[Faction]:
+        if not kill_events:
+            return []
         ids: List[int] = list(
             map(lambda e: int(e["character_id"]), kill_events))
         chars = await get_chars_batched(client)(["faction_id", "character_id"])(ids)
