@@ -72,7 +72,6 @@ def query_outfit(outfit_id: int):
 def with_character_query(query: Query):
     """Mix in a join on character."""
     query.create_join("character")
-    query.limit(150)
     return query
 
 
