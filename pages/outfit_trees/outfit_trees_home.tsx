@@ -16,7 +16,7 @@ const OutfitTreesHomePage = () => {
         <Heading>Available outfit family trees</Heading>
         <UnorderedList>
           {trees.map((t) => (
-            <ListItem color="green.100">
+            <ListItem textDecoration="underline">
               <Link href={t.route}>
                 <a>{t.name}</a>
               </Link>
