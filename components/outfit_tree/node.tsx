@@ -1,7 +1,8 @@
 import React, { FC, PropsWithChildren, Children, ReactNode } from "react";
-import { Circle, Tooltip, useColorModeValue } from "@chakra-ui/react";
+import { Tooltip } from "@chakra-ui/react";
 
 import Arrow from "./arrow";
+import NodeCircle from "./node_circle";
 
 const select_angle = (children: number): ((index: number) => number) => {
   const ANGLES = [
@@ -47,19 +48,13 @@ const Node: FC<PropsWithChildren<NodeProps>> = ({
     );
   const get_angle = children ? select_angle(number_of_children) : () => 180; // I had to make a function so that get_angle would always be defined
 
-  const color = useColorModeValue("black", "white");
   return (
     <>
-      <Circle
-        borderColor={color}
-        borderStyle={alive ? "solid" : "dashed"}
-        borderWidth="1px"
-        p={2}
-      >
+      <NodeCircle alive={!!alive}>
         <Tooltip label={name} aria-label="outfit name">
           {tag}
         </Tooltip>
-      </Circle>
+      </NodeCircle>
       {Children.forEach(children, (child: ReactNode, index: number) => (
         <>
           <Arrow angle={get_angle(index)} />

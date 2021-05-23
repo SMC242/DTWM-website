@@ -1,6 +1,8 @@
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import React, { FC, PropsWithChildren } from "react";
-import { Box, Circle, useColorModeValue } from "@chakra-ui/react";
+import { Box, useColorModeValue } from "@chakra-ui/react";
+
+import NodeCircle from "./node_circle";
 
 export interface TreeProps {}
 
@@ -18,12 +20,8 @@ const Tree: FC<PropsWithChildren<TreeProps>> = ({ children }) => {
             marginLeft={2}
           >
             <u>Key</u>
-            <Circle borderColor={color} borderStyle="solid" borderWidth="1">
-              Alive outfit
-            </Circle>
-            <Circle borderColor={color} borderStyle="dashed" borderWidth="1">
-              Dead outfit
-            </Circle>
+            <NodeCircle alive>Alive outfit</NodeCircle>
+            <NodeCircle alive={false}>Dead outfit</NodeCircle>
           </Box>
           {children}
         </Box>
