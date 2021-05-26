@@ -17,6 +17,9 @@ import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 useTheme(am4themes_dark);
 useTheme(am4themes_animated);
 
+export type CircumstanceT = "split" | "merge" | "reformed";
+export type Faction = "NC" | "TR" | "VS";
+
 /**
  * The first parent outfit.
  * Its child outfits should be held in `children`
@@ -24,24 +27,28 @@ useTheme(am4themes_animated);
 export interface TreeNode {
   tag: string;
   name: string;
-  children: Array<TreeNode>;
+  faction: Faction;
+  circumstances?: CircumstanceT;
+  children?: Array<TreeNode>;
   /**
    * An identifier for linking to
    */
-  id: string;
+  id?: string;
   /**
    * A list of IDs to link to.
    */
-  links: Array<string>;
+  links?: Array<string>;
 }
 
 interface ChartItem {
   name: string; // the outfit tag
   value: number; // will always be 1
   outfit_name: string;
-  children: Array<ChartItem>;
-  id: string;
-  links: Array<string>;
+  faction: Faction;
+  circumstances?: CircumstanceT;
+  children?: Array<ChartItem>;
+  id?: string;
+  links?: Array<string>;
 }
 
 /**
@@ -52,10 +59,12 @@ interface ChartItem {
 const ChartItemFactory = (node: TreeNode): ChartItem => ({
   name: node.tag,
   outfit_name: node.name,
-  children: node.children.map((n) => ChartItemFactory(n)),
+  children: node.children?.map((n) => ChartItemFactory(n)),
   value: 1,
   id: node.id,
   links: node.links,
+  faction: node.faction,
+  circumstances: node.circumstances,
 });
 
 const make_chart_ready = (tree: TreeNode): [ChartItem] => {
