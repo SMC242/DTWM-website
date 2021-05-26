@@ -18,7 +18,7 @@ const Tree: FC<TreeProps> = ({ nodes, title }) => {
     set_tree(_tree);
     return unmount;
   });
-  return <Box id={chart_title}>{tree}</Box>;
+  return <Box height="80%" width="80%" id={chart_title}></Box>;
 };
 
 export default Tree;
