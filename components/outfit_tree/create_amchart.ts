@@ -105,7 +105,7 @@ const customise_chart = (chart: ForceDirectedTree): ForceDirectedTree => {
  * @param chart_id The id of the element to mount the chart into.
  * @returns [the chart, the unmount callback]
  */
-export const get_outfit_tree =
+export const create_outfit_tree =
   (chart_id: string) =>
   (nodes: TreeNode): [Sprite, () => void] => {
     const set_up_chart = (chart: ForceDirectedTree) =>
