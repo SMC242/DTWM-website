@@ -8,16 +8,17 @@ export interface TreeProps {
   title?: string;
 }
 
-type ChartType = ReturnType<typeof create_outfit_tree>;
+type ChartType = ReturnType<ReturnType<typeof create_outfit_tree>>[0];
 
 const Tree: FC<TreeProps> = ({ nodes, title }) => {
-  const [tree, set_tree]: [null | ChartType, () => void] = useState(null);
+  const [tree, set_tree] = useState<null | ChartType>(null);
   const chart_title = title || `${nodes["tag"]} family tree`;
   useEffect(() => {
-    const [tree, unmount] = create_outfit_tree(chart_title)(nodes);
+    const [_tree, unmount] = create_outfit_tree(chart_title)(nodes);
+    set_tree(_tree);
     return unmount;
   });
-  return <Box id="">{tree}</Box>;
+  return <Box id={chart_title}>{tree}</Box>;
 };
 
 export default Tree;
