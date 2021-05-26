@@ -4,7 +4,7 @@ import { Text, Heading } from "@chakra-ui/react";
 
 import Article from "../../components/templates/article";
 import Tree from "../../components/outfit_tree/tree";
-import Node from "../../components/outfit_tree/node";
+import MB1 from "../../components/outfit_tree/outfits/MB1";
 
 const MB1FamilyTree = () => {
   return (
@@ -18,9 +18,7 @@ const MB1FamilyTree = () => {
           This is the history of MB1 and its children as I understand it
         </Text>
         <Text>Last update: 2021-05-23 03:22</Text>
-        <Tree>
-          <Node tag="MB1" name="Unknown" />
-        </Tree>
+        <Tree nodes={MB1} />
       </Article>
     </>
   );
