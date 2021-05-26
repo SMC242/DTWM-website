@@ -16,8 +16,10 @@
     "next": "10.0.9",
     "ramda": "^0.27.1",
     "react": "17.0.1",
+    "react-arrow": "^2.0.4",
     "react-dom": "17.0.1",
-    "react-icons": "^4.2.0"
+    "react-icons": "^4.2.0",
+    "react-zoom-pan-pinch": "^1.6.1"
   },
   "devDependencies": {
     "@types/next": "^9.0.0",

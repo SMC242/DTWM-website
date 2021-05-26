@@ -23,6 +23,7 @@ const MyApp: FC<AppProps> = ({ Component, pageProps }) => {
       text: "Training Docs",
       route: "/training/training-home",
     },
+    { text: "Outfit Trees", route: "/outfit_trees/outfit_trees_home" },
   ];
 
   return (
