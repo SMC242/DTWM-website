@@ -252,3 +252,10 @@ def update_dict(d1: dict):
     def update_dict_inner(d2: dict):
         return d1.update(d2) or d1
     return update_dict_inner
+
+
+def chunk(chunk_size: int = 20):
+    """Split a list into pieces sized `chunk_size` or less."""
+    def chunk_inner(xs: list) -> List[list]:
+        return [xs[i: i + chunk_size] for i in range(0, len(xs), chunk_size)]
+    return chunk_inner

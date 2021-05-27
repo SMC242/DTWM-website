@@ -1,13 +1,33 @@
 import "../styles/globals.css";
-import { ChakraProvider } from "@chakra-ui/react";
-import React from "react";
-import { AppProps } from "next/app";
+import React, { FC } from "react";
+import type { AppProps } from "next/app";
 import Head from "next/head";
-import Skull from "../images/skull/DTWMSkull.big.png";
+import { CustomChakraProvider } from "../theme";
+import { HNavbar } from "../components/navigation/navbar";
 
-function MyApp({ Component, pageProps }: AppProps) {
+const MyApp: FC<AppProps> = ({ Component, pageProps }) => {
+  const links = [
+    {
+      text: "Home",
+      route: "/",
+    },
+    {
+      text: "Info",
+      route: "/info",
+    },
+    {
+      text: "Discord",
+      route: "https://joindtwm.vercel.app/join",
+    },
+    {
+      text: "Training Docs",
+      route: "/training/training-home",
+    },
+    { text: "Outfit Trees", route: "/outfit_trees/outfit_trees_home" },
+  ];
+
   return (
-    <ChakraProvider>
+    <CustomChakraProvider>
       <Head>
         {/* favicon stuff */}
         <link
@@ -51,9 +71,10 @@ function MyApp({ Component, pageProps }: AppProps) {
           key="ogimage"
         />
       </Head>
+      <HNavbar links={links} />
       <Component {...pageProps} />
-    </ChakraProvider>
+    </CustomChakraProvider>
   );
-}
+};
 
 export default MyApp;

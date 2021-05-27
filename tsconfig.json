@@ -26,6 +26,7 @@
     "functions/",
     "pages/",
     "declarations/",
+    "theme/"
   ],
   "exclude": [
     "node_modules"
