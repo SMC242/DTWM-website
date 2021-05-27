@@ -4,6 +4,7 @@ import type { AppProps } from "next/app";
 import Head from "next/head";
 import { CustomChakraProvider } from "../theme";
 import { HNavbar } from "../components/navigation/navbar";
+import OG from "../components/templates/open_graph";
 
 const MyApp: FC<AppProps> = ({ Component, pageProps }) => {
   const links = [
@@ -52,24 +53,7 @@ const MyApp: FC<AppProps> = ({ Component, pageProps }) => {
         <meta name="msapplication-TileColor" content="#9f00a7" />
         <meta name="theme-color" content="#e60ded" />
 
-        {/* OpenGraph stuff */}
-        <meta property="og:site_name" content="DTWM" key="ogsitename" />
-        <meta
-          property="og:url"
-          content="https://joindtwm.vercel.app/"
-          key="ogurl"
-        />
-        <meta
-          property="og:description"
-          content="The DTWM weebs are invading your computer..."
-          key="ogdesc"
-        />
-        <meta property="og:type" content="website" key="ogtype" />
-        <meta
-          property="og:image"
-          content="https://joindtwm.vercel.app/_next/image?url=%2Fimages%2Fskull%2FDTWMSkull.big.png&w=256&q=75"
-          key="ogimage"
-        />
+        <OG />
       </Head>
       <HNavbar links={links} />
       <Component {...pageProps} />
