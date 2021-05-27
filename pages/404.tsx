@@ -11,6 +11,4 @@ const NotFoundPage = () => (
   </>
 );
 
-const title = "DTWM - 404";
-
 export default NotFoundPage;

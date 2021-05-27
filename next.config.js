@@ -1,4 +1,4 @@
-module.exports = {
+const next_config = {
   async redirects() {
     return [
       {
@@ -9,3 +9,6 @@ module.exports = {
     ];
   },
 };
+const withTM = () => require("next-transpile-modules")(["@amcharts/amcharts4"]); // pass the modules you would like to see transpiled
+
+module.exports = withTM(next_config);
