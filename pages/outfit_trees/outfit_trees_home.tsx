@@ -17,7 +17,7 @@ const OutfitTreesHomePage = () => {
         <UnorderedList>
           {trees.map((t) => (
             <ListItem textDecoration="underline">
-              <Link href={t.route}>
+              <Link key={t.name} href={t.route}>
                 <a>{t.name}</a>
               </Link>
             </ListItem>
