@@ -5,7 +5,6 @@ import {
   Sprite,
   DropShadowFilter,
 } from "@amcharts/amcharts4/core";
-import * as am4charts from "@amcharts/amcharts4/charts";
 import {
   ForceDirectedTree,
   ForceDirectedSeries,
