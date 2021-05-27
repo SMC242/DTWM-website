@@ -17,7 +17,7 @@ const Tree: FC<TreeProps> = ({ nodes, title }) => {
     const [_tree, unmount] = create_outfit_tree(chart_title)(nodes);
     set_tree(_tree);
     return unmount;
-  });
+  }, [nodes]);
   return <Box height="80%" width="80%" id={chart_title}></Box>;
 };
 
