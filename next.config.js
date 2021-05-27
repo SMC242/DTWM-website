@@ -1,3 +1,12 @@
+
+const withTM = () =>
+  require("next-transpile-modules")([
+    "@amcharts/amcharts4/core",
+    "@amcharts/amcharts4/themes/animated",
+    "@amcharts/amcharts4/plugins/forceDirected",
+    "@amcharts/amcharts4/themes/dark",
+  ]); // pass the modules you would like to see transpiled
+
 module.exports = {
   async redirects() {
     return [
@@ -8,12 +17,5 @@ module.exports = {
       },
     ];
   },
-  withTM() {
-    require("next-transpile-modules")([
-      "@amcharts/amcharts4/core",
-      "@amcharts/amcharts4/themes/animated",
-      "@amcharts/amcharts4/plugins/forceDirected",
-      "@amcharts/amcharts4/themes/dark",
-    ]); // pass the modules you would like to see transpiled
-  },
+  withTM()
 };
