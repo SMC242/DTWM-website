@@ -23,7 +23,7 @@ const OutfitTreesHomePage = () => {
           {trees.map((t) => (
             <ListItem textDecoration="underline">
               <Link key={t.name} href={t.route}>
-                <a>{t.name}</a>
+                <a key={t.name}>{t.name}</a>
               </Link>
             </ListItem>
           ))}
