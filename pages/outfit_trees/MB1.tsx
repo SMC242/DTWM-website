@@ -1,17 +1,18 @@
 import React from "react";
-import Head from "next/head";
 import { Text, Heading } from "@chakra-ui/react";
 
 import Article from "../../components/templates/article";
 import Tree from "../../components/outfit_tree/tree";
 import MB1 from "../../components/outfit_tree/outfits/MB1";
+import Header from "../../components/templates/header";
 
 const MB1FamilyTree = () => {
   return (
     <>
-      <Head>
-        <title>MB1 Family Tree</title>
-      </Head>
+      <Header
+        title="MB1 Family Tree"
+        description="The outfit split history of MB1"
+      />
       <Article>
         <Heading>Info</Heading>
         <Text>
