@@ -32,7 +32,6 @@ const MB1: TreeNode = {
           tag: "ORlG",
           faction: "NC",
           circumstances: "split",
-          id: "ORlG",
           children: [
             {
               name: "Nomad Predators",
