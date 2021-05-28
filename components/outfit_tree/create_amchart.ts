@@ -55,16 +55,24 @@ interface ChartItem {
  * @param node The tree to convert
  * @returns The `ChartItem`s
  */
-const ChartItemFactory = (node: TreeNode): ChartItem => ({
-  name: node.tag,
-  outfit_name: node.name,
-  children: node.children?.map((n) => ChartItemFactory(n)),
-  value: 1,
-  id: node.id,
-  links: node.links,
-  faction: node.faction,
-  circumstances: node.circumstances,
-});
+const ChartItemFactory = (node: TreeNode, depth: number = 0): ChartItem => {
+  const get_value = (start: number = 16, min: number = 5): number => {
+    const value = start - depth;
+    return value >= min ? value : min;
+  };
+  const increase_depth = (decrement_by: number = 2): number =>
+    depth + decrement_by;
+  return {
+    name: node.tag,
+    outfit_name: node.name,
+    children: node.children?.map((n) => ChartItemFactory(n, increase_depth())),
+    value: get_value(undefined, 6),
+    id: node.id,
+    links: node.links,
+    faction: node.faction,
+    circumstances: node.circumstances,
+  };
+};
 
 const make_chart_ready = (tree: TreeNode): [ChartItem] => {
   return [ChartItemFactory(tree)];
