@@ -18,7 +18,6 @@ const Header: FC<HeaderProps> = ({
   image_url = "https://joindtwm.vercel.app/_next/image?url=%2Fimages%2Fskull%2FDTWMSkull.big.png&w=256&q=75",
   title = "DTWM",
 }) => {
-  console.log(site_name, url, description, type, image_url);
   return (
     <Head>
       <title>{title}</title>
