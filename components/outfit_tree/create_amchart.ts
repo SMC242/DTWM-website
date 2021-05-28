@@ -4,7 +4,6 @@ import {
   useTheme,
   Sprite,
   DropShadowFilter,
-  color,
 } from "@amcharts/amcharts4/core";
 import {
   ForceDirectedTree,
@@ -49,7 +48,6 @@ interface ChartItem {
   children?: Array<ChartItem>;
   id?: string;
   links?: Array<string>;
-  color: string;
 }
 
 /**
@@ -57,30 +55,16 @@ interface ChartItem {
  * @param node The tree to convert
  * @returns The `ChartItem`s
  */
-const ChartItemFactory = (node: TreeNode, depth: number = 0): ChartItem => {
-  const get_value = (start: number = 16, min: number = 5): number => {
-    const value = start - depth;
-    return value >= min ? value : min;
-  };
-  const increase_depth = (decrement_by: number = 2): number =>
-    depth + decrement_by;
-  const faction_colour = (): string => {
-    const colours = { TR: "#fd0101", VS: "#6e02fe", NC: "#108df5" };
-    return colours[node.faction];
-  };
-
-  return {
-    name: node.tag,
-    outfit_name: node.name,
-    children: node.children?.map((n) => ChartItemFactory(n, increase_depth())),
-    value: get_value(undefined, 8),
-    id: node.id,
-    links: node.links,
-    faction: node.faction,
-    color: faction_colour(),
-    circumstances: node.circumstances,
-  };
-};
+const ChartItemFactory = (node: TreeNode): ChartItem => ({
+  name: node.tag,
+  outfit_name: node.name,
+  children: node.children?.map((n) => ChartItemFactory(n)),
+  value: 1,
+  id: node.id,
+  links: node.links,
+  faction: node.faction,
+  circumstances: node.circumstances,
+});
 
 const make_chart_ready = (tree: TreeNode): [ChartItem] => {
   return [ChartItemFactory(tree)];
@@ -107,13 +91,10 @@ const set_fields = (series: ForceDirectedSeries): ForceDirectedSeries => {
     outfit_name: "outfit_name",
     id: "id",
     linkWith: "links",
-    color: "color",
   };
   series.dataFields = { ...series.dataFields, ...keys };
   series.nodes.template.label.text = "{name}";
-  series.nodes.template.tooltipText =
-    "[[{name}]] {outfit_name} (faction: {faction})";
-  series.nodes.template.label.fill = color("#CDCDCD");
+  series.nodes.template.tooltipText = "[[{name}]] {outfit_name}";
   return series;
 };
 
