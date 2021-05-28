@@ -66,7 +66,7 @@ const ChartItemFactory = (node: TreeNode, depth: number = 0): ChartItem => {
     name: node.tag,
     outfit_name: node.name,
     children: node.children?.map((n) => ChartItemFactory(n, increase_depth())),
-    value: get_value(undefined, 6),
+    value: get_value(undefined, 8),
     id: node.id,
     links: node.links,
     faction: node.faction,
