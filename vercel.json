@@ -4,16 +4,6 @@
       "source": "/join",
       "destination": "https://discord.gg/AaMz4gp",
       "permanent": true
-    },
-    { "source": "/api", "destination": "api_server/api.py", "permanent": true }
-  ],
-  "routes": [
-    {
-      "src": "/join",
-      "status": 308,
-      "headers": { "Location": "https://discord.gg/AaMz4gp" }
-    },
-    { "src": "/api", "dest": "api_server/api.py" },
-    { "src": "/" }
+    }
   ]
 }
