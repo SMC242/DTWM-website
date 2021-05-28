@@ -19,11 +19,26 @@ const OG: FC<OGProps> = ({
   return (
     <Head>
       {/* OpenGraph stuff */}
-      <meta property="og:site_name" content={site_name} key="ogsitename" />
-      <meta property="og:url" content={url} key="ogurl" />
-      <meta property="og:description" content={description} key="ogdesc" />
-      <meta property="og:type" content={type} key="ogtype" />
-      <meta property="og:image" content={image_url} key="ogimage" />
+      <meta
+        property="og:site_name"
+        content={site_name}
+        key="ogsitename"
+        name="site_name"
+      />
+      <meta property="og:url" content={url} key="ogurl" name="url" />
+      <meta
+        property="og:description"
+        content={description}
+        key="ogdesc"
+        name="description"
+      />
+      <meta property="og:type" content={type} key="ogtype" name="type" />
+      <meta
+        property="og:image"
+        content={image_url}
+        key="ogimage"
+        name="image"
+      />
     </Head>
   );
 };
