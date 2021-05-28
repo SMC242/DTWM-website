@@ -4,6 +4,7 @@ import {
   useTheme,
   Sprite,
   DropShadowFilter,
+  color,
 } from "@amcharts/amcharts4/core";
 import {
   ForceDirectedTree,
@@ -48,6 +49,7 @@ interface ChartItem {
   children?: Array<ChartItem>;
   id?: string;
   links?: Array<string>;
+  color: string;
 }
 
 /**
@@ -62,6 +64,11 @@ const ChartItemFactory = (node: TreeNode, depth: number = 0): ChartItem => {
   };
   const increase_depth = (decrement_by: number = 2): number =>
     depth + decrement_by;
+  const faction_colour = (): string => {
+    const colours = { TR: "#fd0101", VS: "#6e02fe", NC: "#108df5" };
+    return colours[node.faction];
+  };
+
   return {
     name: node.tag,
     outfit_name: node.name,
@@ -70,6 +77,7 @@ const ChartItemFactory = (node: TreeNode, depth: number = 0): ChartItem => {
     id: node.id,
     links: node.links,
     faction: node.faction,
+    color: faction_colour(),
     circumstances: node.circumstances,
   };
 };
@@ -99,11 +107,13 @@ const set_fields = (series: ForceDirectedSeries): ForceDirectedSeries => {
     outfit_name: "outfit_name",
     id: "id",
     linkWith: "links",
+    color: "color",
   };
   series.dataFields = { ...series.dataFields, ...keys };
   series.nodes.template.label.text = "{name}";
   series.nodes.template.tooltipText =
     "[[{name}]] {outfit_name} (faction: {faction})";
+  series.nodes.template.label.fill = color("#CDCDCD");
   return series;
 };
 
