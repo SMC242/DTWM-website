@@ -102,7 +102,8 @@ const set_fields = (series: ForceDirectedSeries): ForceDirectedSeries => {
   };
   series.dataFields = { ...series.dataFields, ...keys };
   series.nodes.template.label.text = "{name}";
-  series.nodes.template.tooltipText = "[[{name}]] {outfit_name}";
+  series.nodes.template.tooltipText =
+    "[[{name}]] {outfit_name} (faction: {faction})";
   return series;
 };
 
