@@ -26,7 +26,8 @@
     "functions/",
     "pages/",
     "declarations/",
-    "theme/"
+    "theme/",
+    "next-env.d.ts"
   ],
   "exclude": [
     "node_modules"
