@@ -1,4 +1,4 @@
 from uvicorn import run
 
 if __name__ == '__main__':
-    run("api:app", port=8000, reload=True)
+    run("server.api:app", port=8000, reload=True)

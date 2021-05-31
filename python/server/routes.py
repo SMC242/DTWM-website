@@ -1,9 +1,6 @@
 from .models import TKBoard
-from python.functions.teamkill_leaderboard import main, outfit_id_by_tag, TKTable
-from fastapi import HTTPException, APIRouter, Body
-from fastapi.encoders import jsonable_encoder
-from sys import path
-print(path)
+from functions.teamkill_leaderboard import main, outfit_id_by_tag, TKTable
+from fastapi import HTTPException, APIRouter
 router = APIRouter()
 
 
