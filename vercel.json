@@ -1,6 +1,5 @@
 {
   "redirects": [
     { "source": "/join", "destination": "https://discord.gg/AaMz4gp" }
-  ],
-  "functions": {"api/index.py", }
+  ]
 }
