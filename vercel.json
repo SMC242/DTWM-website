@@ -2,10 +2,5 @@
   "redirects": [
     { "source": "/join", "destination": "https://discord.gg/AaMz4gp" }
   ],
-  "rewrites": [
-    {
-      "source": "/api/teamkill-board/:outfit_tag",
-      "destination": "api_server/api.py"
-    }
-  ]
+  "functions": {"api/index.py", }
 }

@@ -1,7 +1,9 @@
+from models import TKBoard
+from DTWMwebsite.functions.teamkill_leaderboard import main, outfit_id_by_tag, TKTable
 from fastapi import HTTPException, APIRouter, Body
 from fastapi.encoders import jsonable_encoder
-from functions.teamkill_leaderboard import main, outfit_id_by_tag, TKTable
-from models import TKBoard
+from sys import path
+print(path)
 router = APIRouter()
 
 
