@@ -39,7 +39,6 @@ next-env.d.ts
 
 # tokens
 *_TOKEN.*
-*_KEY.*
 __pycache__/
 
 # environment files
