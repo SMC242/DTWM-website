@@ -1,8 +1,5 @@
 from .models import TKBoard
-try:
-    from functions.teamkill_leaderboard import main, outfit_id_by_tag, TKTable
-except ImportError:
-    from python.functions.teamkill_leaderboard import main, outfit_id_by_tag, TKTable
+from python.functions.teamkill_leaderboard import main, outfit_id_by_tag, TKTable
 from fastapi import HTTPException, APIRouter
 router = APIRouter()
 
