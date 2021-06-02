@@ -1,15 +1,15 @@
-from python.server.api import app
+from fastapi import FastAPI
+
+app = FastAPI()
 
 
-def inject_root():
-    """Make the Python folder importable."""
-    from sys import path as sys_path
-    from pathlib import Path
-    try:
-        from python.server.api import app
-    except ImportError:
-        root = Path().absolute()
-        sys_path.append(str(root))
+@app.get("/")
+async def root() -> dict:
+    return {
+        "message": "Welcome to my notes application, use the /docs route to proceed"
+    }
 
 
-inject_root()
+@app.get("/test")
+async def test_standalone_app() -> dict:
+    return {"message": "Standalone app works"}
