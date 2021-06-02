@@ -5,5 +5,5 @@ app = Sanic(name="DTWM API parameters test")
 
 
 @app.route("/api/paramtest/<test:test>")
-async def pathtest(request: Request, param: str = "failed") -> HTTPResponse:
+async def pathtest(request: Request, param="failed") -> HTTPResponse:
     return json({"Parameter works": param})
