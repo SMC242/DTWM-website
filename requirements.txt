@@ -1,2 +1,3 @@
 auraxium
 sanic
+sanic_openapi
