@@ -1,3 +1,2 @@
 auraxium
-fastapi
-uvicorn
+sanic

@@ -1,13 +1,12 @@
-from fastapi import FastAPI
-from uvicorn import run
+from sanic import Sanic
+from sanic.response import json
 
-app = FastAPI()
-print("App running")
+app = Sanic("My Hello, world app")
 
 
-@app.get("/test")
-async def test_standalone_app() -> dict:
-    return {"message": "Standalone app works"}
+@app.route('/')
+async def test(request):
+    return json({'hello': 'world'})
 
-if __name__ == "__main__":
-    run(app)
+if __name__ == '__main__':
+    app.run()
