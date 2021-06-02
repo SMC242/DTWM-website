@@ -4,6 +4,6 @@ from sanic.request import Request
 app = Sanic(name="DTWM API parameters test")
 
 
-@app.route("/api/paramtest/<param>")
-async def pathtest(request: Request, param: str) -> HTTPResponse:
+@app.route("/api/paramtest/<param:param>")
+async def pathtest(request: Request, param: str = "failed") -> HTTPResponse:
     return json({"Parameter works": param})
