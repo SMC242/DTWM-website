@@ -1,10 +1,9 @@
-from fastapi import FastAPI
+from sanic import Sanic
+from sanic.response import json
+app = Sanic()
 
-app = FastAPI()
 
-
-@app.get("/")
-async def root() -> dict:
-    return {
-        "message": "Welcome to my notes application, use the /docs route to proceed"
-    }
+@app.route('/')
+@app.route('/<path:path>')
+async def index(request, path=""):
+    return json({'hello': path})
