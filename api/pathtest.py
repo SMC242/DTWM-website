@@ -1,5 +1,6 @@
 from sanic import Sanic
-from sanic.response import json, Request, HTTPResponse
+from sanic.response import json, HTTPResponse
+from sanic.request import Request
 app = Sanic(name="DTWM API path testing")
 
 
