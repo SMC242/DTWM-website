@@ -5,6 +5,5 @@ app = Sanic(name="DTWM API root")
 
 
 @app.route('/')
-@app.route('/<path:path>')
-async def index(request: Request, path=""):
-    return json({'hello': path})
+async def index(request: Request):
+    return json({'hello': "yes"})
