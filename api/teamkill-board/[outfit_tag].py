@@ -28,3 +28,4 @@ def nso_outfit_error(tag: str) -> str:
 @limiter.limit("10/hour;1/minute")
 async def tkboard(request: Request, outfit_tag: str) -> HTTPResponse:
     """Get a leaderboard of teamkills per 250 kills from an outfit tag."""
+    raise SanicException("Teamkill API not implemented", status_code=501)
